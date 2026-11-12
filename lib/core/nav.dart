@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../pages/video/video_page.dart';
+import 'metrics.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 final messengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -19,5 +20,7 @@ Future<BuildContext?> waitNavigatorContext() async {
 Future<T?> push<T>(BuildContext context, Widget page) =>
     Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => page));
 
-Future<void> openVideo(BuildContext context, String code, {String? localPath, String? localTitle}) =>
-    push(context, VideoPage(videoCode: code, localPath: localPath, localTitle: localTitle));
+Future<void> openVideo(BuildContext context, String code, {String? localPath, String? localTitle}) {
+  Metrics.note('video');
+  return push(context, VideoPage(videoCode: code, localPath: localPath, localTitle: localTitle));
+}

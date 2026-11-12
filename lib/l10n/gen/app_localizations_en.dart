@@ -87,6 +87,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get linkCopied => 'Link copied';
 
   @override
+  String get copied => 'Copied';
+
+  @override
+  String get needPro => 'Available after powering';
+
+  @override
+  String get exportNameTooLong =>
+      'The name or path is too long. The title will be shortened';
+
+  @override
+  String get multiSelect => 'Select';
+
+  @override
+  String selectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String downloadQueued(int added, int skipped) {
+    return 'Added $added, skipped $skipped';
+  }
+
+  @override
+  String get subscriptionUpdates => 'Subscription updates';
+
+  @override
+  String get subscriptionUpdatesHint =>
+      'Mark videos added since you last opened subscriptions';
+
+  @override
   String get playing => 'Playing';
 
   @override
@@ -457,6 +487,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sortOldest => 'Oldest';
 
   @override
+  String get userSortDefault => 'Default';
+
+  @override
+  String get userSortLatest => 'Latest';
+
+  @override
+  String get userSortPopular => 'Popular';
+
+  @override
+  String get userSortOldest => 'Oldest';
+
+  @override
   String get account => 'Account';
 
   @override
@@ -707,9 +749,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
-  String get originalProject => 'Original project';
-
-  @override
   String get discardChanges => 'Discard unsaved changes?';
 
   @override
@@ -807,14 +846,182 @@ class AppLocalizationsEn extends AppLocalizations {
       'Clears cf_clearance; you may need to verify again';
 
   @override
-  String get userSortDefault => 'Default';
+  String get proTitle => 'Power';
 
   @override
-  String get userSortLatest => 'Latest';
+  String get proCenter => 'Power';
 
   @override
-  String get userSortPopular => 'Popular';
+  String get proPowered => 'Powered';
 
   @override
-  String get userSortOldest => 'Oldest';
+  String get proNotPowered => 'Not powered';
+
+  @override
+  String get proGuide =>
+      'Power status is tied to the username after login.\n\n\"I have powered before\" syncs an existing status\n\"I just powered\" redeems a code\nPatreon is a separate method\nSwitching the method may fix connection failures';
+
+  @override
+  String get proSignIn => 'Redeem';
+
+  @override
+  String get proPatreon => 'Patreon';
+
+  @override
+  String get proIHavePowered => 'I have powered before';
+
+  @override
+  String get proIJustPowered => 'I just powered';
+
+  @override
+  String get proEnterCode => 'Enter code';
+
+  @override
+  String get proPowerMethod => 'Power method';
+
+  @override
+  String get proChooseMethod => 'Choose a method';
+
+  @override
+  String get proClickPatToChange =>
+      'Use the Patreon section below to make changes';
+
+  @override
+  String get proUpdatePat => 'Refresh Patreon status';
+
+  @override
+  String get proBindAccount => 'Bind to this account';
+
+  @override
+  String get proChangePatKey => 'Change Patreon key';
+
+  @override
+  String get proClearPat => 'Clear Patreon info';
+
+  @override
+  String get proClickToBind => 'Tap to bind';
+
+  @override
+  String get proEnterAuthCode => 'Enter the authorization code';
+
+  @override
+  String get proPleaseWait => 'Please wait';
+
+  @override
+  String get proKeyRecorded => 'Key saved';
+
+  @override
+  String get proPatAccount => 'Patreon account';
+
+  @override
+  String get proBoundAccount => 'Bound account';
+
+  @override
+  String get proBindTime => 'Bound at';
+
+  @override
+  String get proRebindTime => 'Can rebind at';
+
+  @override
+  String get proPatBindHint => 'Tap here to bind the current account';
+
+  @override
+  String get proPatRebindHint =>
+      'The bound account does not match the logged-in username. Rebind it';
+
+  @override
+  String get proPatNotDetected => 'Membership was not detected';
+
+  @override
+  String get proPatNormal => 'Active';
+
+  @override
+  String get proSynced => 'Synced';
+
+  @override
+  String proPageLimit(int pages) {
+    return 'Only the first $pages pages are available before powering';
+  }
+
+  @override
+  String get proGo => 'Power up';
+
+  @override
+  String get proErrNetworkTimeout =>
+      'Network timeout. Check the connection or switch the power method';
+
+  @override
+  String get proErrNetworkUnreachable =>
+      'Cannot reach the server. Check the connection or switch the power method';
+
+  @override
+  String get proErrServerFailed => 'The server failed to handle the request';
+
+  @override
+  String get proErrServerInvalid => 'The server returned an invalid response';
+
+  @override
+  String get proErrRequestInvalid => 'Invalid request';
+
+  @override
+  String get proErrOrderNotSynced =>
+      'The order has not synced yet. Try again later';
+
+  @override
+  String get proErrOrderUsed => 'This order has already been used';
+
+  @override
+  String get proErrOrderAmount => 'The order amount is invalid';
+
+  @override
+  String get proErrTicketNotFound => 'Ticket not found';
+
+  @override
+  String get proErrTicketUsed => 'This ticket has already been used';
+
+  @override
+  String get proErrTicketEventUsed => 'This event ticket has already been used';
+
+  @override
+  String get proErrDeviceTime => 'Check the device time';
+
+  @override
+  String get proErrPatNotBound => 'No key is bound yet';
+
+  @override
+  String get browserAddressHint => 'Enter a URL';
+
+  @override
+  String get browserBack => 'Back';
+
+  @override
+  String get browserForward => 'Forward';
+
+  @override
+  String get checkUpdate => 'Check for updates';
+
+  @override
+  String get checkingUpdate => 'Checking for updates';
+
+  @override
+  String get alreadyLatest => 'You\'re up to date';
+
+  @override
+  String newVersionFound(String version) {
+    return 'New version $version';
+  }
+
+  @override
+  String get updateTitle => 'New version';
+
+  @override
+  String forceUpdateMessage(String version) {
+    return 'Version $version is required before you can continue';
+  }
+
+  @override
+  String get downloadUpdate => 'Download';
+
+  @override
+  String get friendLinks => 'Links';
 }

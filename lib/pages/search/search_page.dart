@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/errors.dart';
+import '../../core/metrics.dart';
 import '../../core/nav.dart';
+import '../../core/prefs.dart';
 import '../../core/search_options.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../src/rust/api/hanime.dart' as hanime;
 import '../../src/rust/api/local.dart' as local;
 import '../../src/rust/api/models.dart';
 import '../../widgets/common.dart';
+import '../../widgets/multi_select.dart';
 
 class SearchFilter {
   String? genre;
@@ -53,6 +56,8 @@ class _SearchPageState extends State<SearchPage> {
   String? _rawQuery;
   int _searchId = 0;
   bool _searched = false;
+  bool _selecting = false;
+  final Map<String, HanimeInfo> _selected = {};
   List<String> _history = [];
 
   @override
@@ -63,7 +68,11 @@ class _SearchPageState extends State<SearchPage> {
     if (query != null && query.isNotEmpty) _text.text = query;
     if (raw != null && raw.isNotEmpty) _rawQuery = raw;
     if (widget.initialTags.isNotEmpty) _filter.tags = widget.initialTags.toSet();
+    if (widget.initialRawQuery == null && Prefs.searchSort.value.isNotEmpty) {
+      _filter.sort = Prefs.searchSort.value;
+    }
     _searched = _rawQuery != null || _filter.tags.isNotEmpty || _text.text.trim().isNotEmpty;
+    if (_searched) Metrics.note('search');
     _loadHistory();
   }
 
@@ -90,7 +99,10 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _searched = true;
       _searchId++;
+      _selecting = false;
+      _selected.clear();
     });
+    Metrics.note('search');
   }
 
   Future<PageResult> _loader(int page) {
@@ -122,6 +134,7 @@ class _SearchPageState extends State<SearchPage> {
     );
     if (r == null) return;
     _filter = r;
+    Prefs.searchSort.value = r.sort ?? '';
     _rawQuery = null;
     _run(saveHistory: false);
   }
@@ -143,8 +156,17 @@ class _SearchPageState extends State<SearchPage> {
     final count = _filter.count + (_rawQuery != null ? 1 : 0);
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 8,
-        title: TextField(
+        leading: _selecting
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(() {
+                  _selecting = false;
+                  _selected.clear();
+                }),
+              )
+            : null,
+        titleSpacing: _selecting ? null : 8,
+        title: _selecting ? Text(l.selectedCount(_selected.length)) : TextField(
           controller: _text,
           focusNode: _focus,
           textInputAction: TextInputAction.search,
@@ -168,17 +190,74 @@ class _SearchPageState extends State<SearchPage> {
           onChanged: (_) => setState(() {}),
         ),
         actions: [
-          IconButton(tooltip: l.pasteLink, icon: const Icon(Icons.content_paste_go), onPressed: _pasteLink),
-          IconButton(
-            tooltip: l.filter,
-            icon: Badge(isLabelVisible: count > 0, label: Text('$count'), child: const Icon(Icons.tune)),
-            onPressed: _openFilter,
-          ),
+          if (!_selecting) ...[
+            IconButton(
+              tooltip: l.filter,
+              icon: Badge(isLabelVisible: count > 0, label: Text('$count'), child: const Icon(Icons.tune)),
+              onPressed: _openFilter,
+            ),
+            PopupMenuButton<String>(
+              onSelected: (v) {
+                switch (v) {
+                  case 'paste':
+                    _pasteLink();
+                  case 'select':
+                    setState(() => _selecting = true);
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'paste',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.content_paste_go),
+                      const SizedBox(width: 12),
+                      Flexible(child: Text(l.pasteLink)),
+                    ],
+                  ),
+                ),
+                if (_searched)
+                  PopupMenuItem(
+                    value: 'select',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.checklist),
+                        const SizedBox(width: 12),
+                        Flexible(child: Text(l.multiSelect)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
       body: !_searched
           ? _historyView(l)
-          : PagedVideoGrid(key: ValueKey(_searchId), loader: _loader),
+          : Column(
+              children: [
+                Expanded(
+                  child: PagedVideoGrid(
+                    key: ValueKey(_searchId),
+                    loader: _loader,
+                    selecting: _selecting,
+                    selected: _selected.keys.toSet(),
+                    onToggle: (info) => setState(() {
+                      if (!_selected.containsKey(info.videoCode)) {
+                        _selected[info.videoCode] = info;
+                      } else {
+                        _selected.remove(info.videoCode);
+                      }
+                    }),
+                  ),
+                ),
+                if (_selecting)
+                  MultiActionBar(
+                    count: _selected.length,
+                    onDownload: () => downloadHanimeSelection(context, _selected.values.toList()),
+                  ),
+              ],
+            ),
     );
   }
 

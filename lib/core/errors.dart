@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge.dart';
 
 import '../l10n/gen/app_localizations.dart';
+import 'pro.dart';
 
 /// Rust 侧错误统一为 `[code] message`
 class AppError {
@@ -41,13 +42,36 @@ class AppError {
       'exists' => l.errExists,
       'invalid' => l.errInvalid,
       'invalid_image' => l.errInvalidImage,
+      'need_pro' => l.proPageLimit(freeMaxPage),
+      'pro' => _proMessage(l, message),
       _ when code.startsWith('http_') => l.errHttp(code.substring(5)),
       _ => null,
     };
     if (head == null) return message;
-    if (head == message || message.isEmpty || code == 'form') return head;
+    if (head == message || message.isEmpty || code == 'form' || code == 'pro' || code == 'need_pro') {
+      return head;
+    }
     return '$head\n$message';
   }
+}
+
+String _proMessage(AppLocalizations l, String code) {
+  return switch (code) {
+    'NETWORK_TIMEOUT' => l.proErrNetworkTimeout,
+    'NETWORK_UNREACHABLE' => l.proErrNetworkUnreachable,
+    'SERVER_FAILED' => l.proErrServerFailed,
+    'SERVER_RESPONSE_INVALID' => l.proErrServerInvalid,
+    'REQUEST_INVALID' => l.proErrRequestInvalid,
+    'ORDER_NOT_SYNCED' => l.proErrOrderNotSynced,
+    'ORDER_ALREADY_USED' => l.proErrOrderUsed,
+    'ORDER_AMOUNT_INVALID' => l.proErrOrderAmount,
+    'TICKET_NOT_FOUND' => l.proErrTicketNotFound,
+    'TICKET_ALREADY_USED' => l.proErrTicketUsed,
+    'TICKET_EVENT_USED' => l.proErrTicketEventUsed,
+    'DEVICE_TIME' => l.proErrDeviceTime,
+    'PAT_NOT_BOUND' => l.proErrPatNotBound,
+    _ => code,
+  };
 }
 
 String errorText(BuildContext context, Object e) =>

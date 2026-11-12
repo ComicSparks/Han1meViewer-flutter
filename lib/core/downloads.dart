@@ -6,6 +6,8 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import '../src/rust/api/download.dart' as dl;
 import '../src/rust/api/models.dart';
+import 'metrics.dart';
+import 'prefs.dart';
 
 class DownloadState {
   static const queued = 0;
@@ -112,7 +114,42 @@ class Downloads {
       suffix: link.suffix,
       groupId: groupId,
     );
+    Metrics.note('download');
     if (Platform.isAndroid) await _ensureNotificationPermission();
+  }
+
+  /// 只记番号、标题、封面和默认画质。地址留空，下载线程开始这一条时再取。
+  /// 返回实际加入的数量和已存在而跳过的数量。
+  static Future<(int, int)> addPendingMany(List<HanimeInfo> items) async {
+    final seen = tasks.value.map((t) => t.videoCode).toSet();
+    final quality = Prefs.defaultQuality.value.trim();
+    var added = 0;
+    var skipped = 0;
+    for (final info in items) {
+      if (info.videoCode.isEmpty || !seen.add(info.videoCode)) {
+        skipped++;
+        continue;
+      }
+      try {
+        await dl.downloadAdd(
+          videoCode: info.videoCode,
+          title: info.title,
+          coverUrl: info.coverUrl,
+          quality: quality.isEmpty ? '1080P' : quality,
+          videoUrl: '',
+          suffix: 'mp4',
+          groupId: 0,
+        );
+        added++;
+      } catch (_) {
+        skipped++;
+      }
+    }
+    if (added > 0) {
+      Metrics.note('download');
+      if (Platform.isAndroid) await _ensureNotificationPermission();
+    }
+    return (added, skipped);
   }
 
   static Future<void> _ensureNotificationPermission() async {

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import '../../core/nav.dart';
+import '../../core/pro.dart';
 import '../../core/session.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../widgets/common.dart';
 import '../../widgets/net_image.dart';
 import '../downloads/downloads_page.dart';
 import '../login_page.dart';
+import '../pro/pro_page.dart';
 import '../settings/settings_page.dart';
 import 'account_page.dart';
 import 'keyframes_page.dart';
@@ -23,7 +25,24 @@ class MinePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.mine)),
+      appBar: AppBar(
+        title: Text(l.mine),
+        actions: [
+          SignalBuilder(
+            builder: (context) {
+              final powered = Pro.powered.value;
+              return IconButton(
+                tooltip: powered ? l.proPowered : l.proTitle,
+                icon: Icon(powered ? Icons.offline_bolt : Icons.offline_bolt_outlined),
+                onPressed: () async {
+                  await push(context, const ProPage());
+                  Pro.refresh();
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: SignalBuilder(
         builder: (context) {
           final s = Session.state.value;

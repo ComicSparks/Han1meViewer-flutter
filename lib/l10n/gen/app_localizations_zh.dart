@@ -87,6 +87,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get linkCopied => '链接已复制';
 
   @override
+  String get copied => '已复制';
+
+  @override
+  String get needPro => '发电后才能使用';
+
+  @override
+  String get exportNameTooLong => '文件名或路径过长，将缩短标题后再导出';
+
+  @override
+  String get multiSelect => '多选';
+
+  @override
+  String selectedCount(int count) {
+    return '已选 $count 项';
+  }
+
+  @override
+  String downloadQueued(int added, int skipped) {
+    return '已加入 $added 个，跳过 $skipped 个';
+  }
+
+  @override
+  String get subscriptionUpdates => '订阅更新提示';
+
+  @override
+  String get subscriptionUpdatesHint => '标出上次查看订阅之后出现的新影片';
+
+  @override
   String get playing => '播放中';
 
   @override
@@ -450,6 +478,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sortOldest => '最早';
 
   @override
+  String get userSortDefault => '默认';
+
+  @override
+  String get userSortLatest => '最新';
+
+  @override
+  String get userSortPopular => '最热门';
+
+  @override
+  String get userSortOldest => '最早';
+
+  @override
   String get account => '账号资料';
 
   @override
@@ -696,9 +736,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get about => '关于';
 
   @override
-  String get originalProject => '原项目';
-
-  @override
   String get discardChanges => '放弃未保存的修改？';
 
   @override
@@ -793,16 +830,179 @@ class AppLocalizationsZh extends AppLocalizations {
   String get regenerateIdentityHint => '会清除现有 cf_clearance，可能需要重新验证';
 
   @override
-  String get userSortDefault => '默认';
+  String get proTitle => '发电';
 
   @override
-  String get userSortLatest => '最新';
+  String get proCenter => '发电中心';
 
   @override
-  String get userSortPopular => '热门';
+  String get proPowered => '发电中';
 
   @override
-  String get userSortOldest => '最旧';
+  String get proNotPowered => '未发电';
+
+  @override
+  String get proGuide =>
+      '发电状态绑定的是登录后的用户名。\n\n「我曾经发过电」同步已有状态\n「我刚才发了电」兑换代码\n「Patreon」是另一种发电方式\n更换「发电方式」可能解决连接失败';
+
+  @override
+  String get proSignIn => '签到/兑换';
+
+  @override
+  String get proPatreon => 'Patreon';
+
+  @override
+  String get proIHavePowered => '我曾经发过电';
+
+  @override
+  String get proIJustPowered => '我刚才发了电';
+
+  @override
+  String get proEnterCode => '输入代码';
+
+  @override
+  String get proPowerMethod => '发电方式';
+
+  @override
+  String get proChooseMethod => '选择发电方式';
+
+  @override
+  String get proClickPatToChange => '点击下面的 Patreon 进行变更';
+
+  @override
+  String get proUpdatePat => '更新 Patreon 状态';
+
+  @override
+  String get proBindAccount => '绑定到此账号';
+
+  @override
+  String get proChangePatKey => '更换 Patreon 密钥';
+
+  @override
+  String get proClearPat => '清除 Patreon 信息';
+
+  @override
+  String get proClickToBind => '点击绑定';
+
+  @override
+  String get proEnterAuthCode => '请输入授权代码';
+
+  @override
+  String get proPleaseWait => '请稍后';
+
+  @override
+  String get proKeyRecorded => '密钥已录入';
+
+  @override
+  String get proPatAccount => 'Patreon 账号';
+
+  @override
+  String get proBoundAccount => '绑定账号';
+
+  @override
+  String get proBindTime => '绑定时间';
+
+  @override
+  String get proRebindTime => '可以换绑时间';
+
+  @override
+  String get proPatBindHint => '请点击这里绑定到当前账号';
+
+  @override
+  String get proPatRebindHint => '绑定账号与当前登录用户名不一致，请换绑';
+
+  @override
+  String get proPatNotDetected => '未检测到入会';
+
+  @override
+  String get proPatNormal => '状态正常';
+
+  @override
+  String get proSynced => '已同步';
+
+  @override
+  String proPageLimit(int pages) {
+    return '未发电只能看前 $pages 页';
+  }
+
+  @override
+  String get proGo => '去发电';
+
+  @override
+  String get proErrNetworkTimeout => '网络超时，请检查网络或更换发电方式';
+
+  @override
+  String get proErrNetworkUnreachable => '连接不上服务器，请检查网络或更换发电方式';
+
+  @override
+  String get proErrServerFailed => '服务器处理失败';
+
+  @override
+  String get proErrServerInvalid => '服务器返回异常';
+
+  @override
+  String get proErrRequestInvalid => '请求无效';
+
+  @override
+  String get proErrOrderNotSynced => '订单尚未同步，请稍后再试';
+
+  @override
+  String get proErrOrderUsed => '订单已被使用';
+
+  @override
+  String get proErrOrderAmount => '订单金额无效';
+
+  @override
+  String get proErrTicketNotFound => '兑换券不存在';
+
+  @override
+  String get proErrTicketUsed => '兑换券已被使用';
+
+  @override
+  String get proErrTicketEventUsed => '活动兑换券已参与';
+
+  @override
+  String get proErrDeviceTime => '请检查设备时间';
+
+  @override
+  String get proErrPatNotBound => '尚未绑定密钥';
+
+  @override
+  String get browserAddressHint => '输入网址';
+
+  @override
+  String get browserBack => '后退';
+
+  @override
+  String get browserForward => '前进';
+
+  @override
+  String get checkUpdate => '检查更新';
+
+  @override
+  String get checkingUpdate => '正在检查更新';
+
+  @override
+  String get alreadyLatest => '已是最新版本';
+
+  @override
+  String newVersionFound(String version) {
+    return '发现新版本 $version';
+  }
+
+  @override
+  String get updateTitle => '发现新版本';
+
+  @override
+  String forceUpdateMessage(String version) {
+    return '发现新版本 $version，请立即更新后继续使用';
+  }
+
+  @override
+  String get downloadUpdate => '去下载';
+
+  @override
+  String get friendLinks => '友情链接';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -886,6 +1086,34 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get linkCopied => '連結已複製';
+
+  @override
+  String get copied => '已複製';
+
+  @override
+  String get needPro => '發電後才能使用';
+
+  @override
+  String get exportNameTooLong => '檔名或路徑過長，將縮短標題後再匯出';
+
+  @override
+  String get multiSelect => '多選';
+
+  @override
+  String selectedCount(int count) {
+    return '已選 $count 項';
+  }
+
+  @override
+  String downloadQueued(int added, int skipped) {
+    return '已加入 $added 個，略過 $skipped 個';
+  }
+
+  @override
+  String get subscriptionUpdates => '訂閱更新提示';
+
+  @override
+  String get subscriptionUpdatesHint => '標出上次查看訂閱之後出現的新影片';
 
   @override
   String get playing => '播放中';
@@ -1251,6 +1479,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get sortOldest => '最早';
 
   @override
+  String get userSortDefault => '預設';
+
+  @override
+  String get userSortLatest => '最新';
+
+  @override
+  String get userSortPopular => '最熱門';
+
+  @override
+  String get userSortOldest => '最早';
+
+  @override
   String get account => '帳號資料';
 
   @override
@@ -1497,9 +1737,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get about => '關於';
 
   @override
-  String get originalProject => '原專案';
-
-  @override
   String get discardChanges => '放棄未儲存的修改？';
 
   @override
@@ -1594,14 +1831,177 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get regenerateIdentityHint => '會清除現有 cf_clearance，可能需要重新驗證';
 
   @override
-  String get userSortDefault => '預設';
+  String get proTitle => '發電';
 
   @override
-  String get userSortLatest => '最新';
+  String get proCenter => '發電中心';
 
   @override
-  String get userSortPopular => '熱門';
+  String get proPowered => '發電中';
 
   @override
-  String get userSortOldest => '最舊';
+  String get proNotPowered => '未發電';
+
+  @override
+  String get proGuide =>
+      '發電狀態綁定的是登入後的使用者名稱。\n\n「我曾經發過電」同步已有狀態\n「我剛才發了電」兌換代碼\n「Patreon」是另一種發電方式\n更換「發電方式」可能解決連線失敗';
+
+  @override
+  String get proSignIn => '簽到/兌換';
+
+  @override
+  String get proPatreon => 'Patreon';
+
+  @override
+  String get proIHavePowered => '我曾經發過電';
+
+  @override
+  String get proIJustPowered => '我剛才發了電';
+
+  @override
+  String get proEnterCode => '輸入代碼';
+
+  @override
+  String get proPowerMethod => '發電方式';
+
+  @override
+  String get proChooseMethod => '選擇發電方式';
+
+  @override
+  String get proClickPatToChange => '點擊下面的 Patreon 進行變更';
+
+  @override
+  String get proUpdatePat => '更新 Patreon 狀態';
+
+  @override
+  String get proBindAccount => '綁定到此帳號';
+
+  @override
+  String get proChangePatKey => '更換 Patreon 金鑰';
+
+  @override
+  String get proClearPat => '清除 Patreon 資訊';
+
+  @override
+  String get proClickToBind => '點擊綁定';
+
+  @override
+  String get proEnterAuthCode => '請輸入授權代碼';
+
+  @override
+  String get proPleaseWait => '請稍後';
+
+  @override
+  String get proKeyRecorded => '金鑰已錄入';
+
+  @override
+  String get proPatAccount => 'Patreon 帳號';
+
+  @override
+  String get proBoundAccount => '綁定帳號';
+
+  @override
+  String get proBindTime => '綁定時間';
+
+  @override
+  String get proRebindTime => '可以換綁時間';
+
+  @override
+  String get proPatBindHint => '請點擊這裡綁定到目前帳號';
+
+  @override
+  String get proPatRebindHint => '綁定帳號與目前登入的使用者名稱不一致，請換綁';
+
+  @override
+  String get proPatNotDetected => '未檢測到入會';
+
+  @override
+  String get proPatNormal => '狀態正常';
+
+  @override
+  String get proSynced => '已同步';
+
+  @override
+  String proPageLimit(int pages) {
+    return '未發電只能看前 $pages 頁';
+  }
+
+  @override
+  String get proGo => '去發電';
+
+  @override
+  String get proErrNetworkTimeout => '網路逾時，請檢查網路或更換發電方式';
+
+  @override
+  String get proErrNetworkUnreachable => '連不上伺服器，請檢查網路或更換發電方式';
+
+  @override
+  String get proErrServerFailed => '伺服器處理失敗';
+
+  @override
+  String get proErrServerInvalid => '伺服器回傳異常';
+
+  @override
+  String get proErrRequestInvalid => '請求無效';
+
+  @override
+  String get proErrOrderNotSynced => '訂單尚未同步，請稍後再試';
+
+  @override
+  String get proErrOrderUsed => '訂單已被使用';
+
+  @override
+  String get proErrOrderAmount => '訂單金額無效';
+
+  @override
+  String get proErrTicketNotFound => '兌換券不存在';
+
+  @override
+  String get proErrTicketUsed => '兌換券已被使用';
+
+  @override
+  String get proErrTicketEventUsed => '活動兌換券已參與';
+
+  @override
+  String get proErrDeviceTime => '請檢查裝置時間';
+
+  @override
+  String get proErrPatNotBound => '尚未綁定金鑰';
+
+  @override
+  String get browserAddressHint => '輸入網址';
+
+  @override
+  String get browserBack => '後退';
+
+  @override
+  String get browserForward => '前進';
+
+  @override
+  String get checkUpdate => '檢查更新';
+
+  @override
+  String get checkingUpdate => '正在檢查更新';
+
+  @override
+  String get alreadyLatest => '已是最新版本';
+
+  @override
+  String newVersionFound(String version) {
+    return '發現新版本 $version';
+  }
+
+  @override
+  String get updateTitle => '發現新版本';
+
+  @override
+  String forceUpdateMessage(String version) {
+    return '發現新版本 $version，請立即更新後繼續使用';
+  }
+
+  @override
+  String get downloadUpdate => '去下載';
+
+  @override
+  String get friendLinks => '友情連結';
 }

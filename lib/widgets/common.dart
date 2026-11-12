@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../core/errors.dart';
 import '../core/nav.dart';
+import '../core/pro.dart';
 import '../l10n/gen/app_localizations.dart';
 import '../pages/login_page.dart';
+import '../pages/pro/pro_page.dart';
 import '../pages/settings/network_settings_page.dart';
 import '../src/rust/api/models.dart';
 import 'net_image.dart';
@@ -47,6 +49,11 @@ class ErrorView extends StatelessWidget {
                       if (ok == true) onRetry?.call();
                     },
                     child: Text(l.login),
+                  ),
+                if (e.code == 'need_pro')
+                  OutlinedButton(
+                    onPressed: () => push(context, const ProPage()),
+                    child: Text(l.proGo),
                   ),
               ],
             ),
@@ -92,7 +99,9 @@ class VideoCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final double? width;
-  const VideoCard(this.info, {super.key, this.onTap, this.onLongPress, this.width});
+  final bool selected;
+  final bool showNew;
+  const VideoCard(this.info, {super.key, this.onTap, this.onLongPress, this.width, this.selected = false, this.showNew = false});
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +123,21 @@ class VideoCard extends StatelessWidget {
               left: 4,
               top: 4,
               child: _Badge(AppLocalizations.of(context).playing, color: theme.colorScheme.primary),
+            ),
+          if (showNew)
+            Positioned(
+              right: 6,
+              top: 6,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle),
+              ),
+            ),
+          if (selected)
+            const ColoredBox(
+              color: Color(0x66000000),
+              child: Center(child: Icon(Icons.check_circle, color: Colors.white)),
             ),
         ],
       ),
@@ -181,6 +205,10 @@ class PagedVideoGrid extends StatefulWidget {
   final void Function(HanimeInfo info, VoidCallback remove)? onLongPress;
   final ValueChanged<PageResult>? onFirstPage;
   final int firstPage;
+  final bool selecting;
+  final Set<String> selected;
+  final ValueChanged<HanimeInfo>? onToggle;
+  final Set<String> newCodes;
 
   const PagedVideoGrid({
     super.key,
@@ -189,6 +217,10 @@ class PagedVideoGrid extends StatefulWidget {
     this.onLongPress,
     this.onFirstPage,
     this.firstPage = 1,
+    this.selecting = false,
+    this.selected = const <String>{},
+    this.onToggle,
+    this.newCodes = const <String>{},
   });
 
   @override
@@ -197,9 +229,11 @@ class PagedVideoGrid extends StatefulWidget {
 
 class PagedVideoGridState extends State<PagedVideoGrid> {
   final List<HanimeInfo> _items = [];
+  List<HanimeInfo> get items => List.unmodifiable(_items);
   late int _page = widget.firstPage;
   bool _loading = false;
   bool _noMore = false;
+  bool _needPro = false;
   Object? _error;
   final _scroll = ScrollController();
 
@@ -223,6 +257,7 @@ class PagedVideoGridState extends State<PagedVideoGrid> {
       _items.clear();
       _page = widget.firstPage;
       _noMore = false;
+      _needPro = false;
       _error = null;
       _loading = false;
     });
@@ -230,7 +265,11 @@ class PagedVideoGridState extends State<PagedVideoGrid> {
   }
 
   Future<void> _loadMore() async {
-    if (_loading || _noMore) return;
+    if (_loading || _noMore || _needPro) return;
+    if (_page > freeMaxPage && !Pro.isPro) {
+      setState(() => _needPro = true);
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -251,7 +290,17 @@ class PagedVideoGridState extends State<PagedVideoGrid> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-    if (mounted && !_noMore && _error == null && _scroll.hasClients && _scroll.position.maxScrollExtent < 200) {
+    if (mounted && !_noMore && !_needPro && _error == null && _scroll.hasClients && _scroll.position.maxScrollExtent < 200) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _openPro() async {
+    await push(context, const ProPage());
+    if (!mounted) return;
+    Pro.refresh();
+    if (Pro.isPro) {
+      setState(() => _needPro = false);
       _loadMore();
     }
   }
@@ -280,7 +329,10 @@ class PagedVideoGridState extends State<PagedVideoGrid> {
                     final info = _items[i];
                     return VideoCard(
                       info,
-                      onLongPress: widget.onLongPress == null
+                      selected: widget.selected.contains(info.videoCode),
+                      showNew: widget.newCodes.contains(info.videoCode),
+                      onTap: widget.selecting ? () => widget.onToggle?.call(info) : null,
+                      onLongPress: widget.selecting || widget.onLongPress == null
                           ? null
                           : () => widget.onLongPress!(info, () => setState(() => _items.remove(info))),
                     );
@@ -292,9 +344,20 @@ class PagedVideoGridState extends State<PagedVideoGrid> {
           SliverToBoxAdapter(
             child: _loading
                 ? const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
-                : (_error != null && _items.isNotEmpty)
-                    ? ErrorView(error: _error!, onRetry: _loadMore, compact: true)
-                    : SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
+                : _needPro
+                    ? Padding(
+                        padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + MediaQuery.paddingOf(context).bottom),
+                        child: Column(
+                          children: [
+                            Text(AppLocalizations.of(context).proPageLimit(freeMaxPage), textAlign: TextAlign.center),
+                            const SizedBox(height: 8),
+                            FilledButton.tonal(onPressed: _openPro, child: Text(AppLocalizations.of(context).proGo)),
+                          ],
+                        ),
+                      )
+                    : (_error != null && _items.isNotEmpty)
+                        ? ErrorView(error: _error!, onRetry: _loadMore, compact: true)
+                        : SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
           ),
         ],
       ),

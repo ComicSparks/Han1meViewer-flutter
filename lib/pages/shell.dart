@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 import '../core/downloads.dart';
+import '../core/sub_updates.dart';
 import '../l10n/gen/app_localizations.dart';
 import 'home/home_page.dart';
 import 'mine/mine_page.dart';
@@ -16,15 +18,43 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => HomeShellState();
 }
 
-class HomeShellState extends State<HomeShell> {
+class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   int _index = 0;
-  late final _pages = const <Widget>[
-    HomePage(),
-    SubscriptionsPage(),
-    MinePage(),
+  final _subscriptionsKey = GlobalKey<SubscriptionsPageState>();
+  late final List<Widget> _pages = [
+    const HomePage(),
+    SubscriptionsPage(key: _subscriptionsKey),
+    const MinePage(),
   ];
 
-  void select(int i) => setState(() => _index = i);
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_index != 1) return;
+    if (state == AppLifecycleState.paused) {
+      _subscriptionsKey.currentState?.markSeen();
+    } else if (state == AppLifecycleState.resumed) {
+      _subscriptionsKey.currentState?.refresh();
+    }
+  }
+
+  void select(int i) {
+    if (i == _index) return;
+    if (_index == 1) _subscriptionsKey.currentState?.markSeen();
+    setState(() => _index = i);
+    if (i == 1) _subscriptionsKey.currentState?.refresh();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +62,18 @@ class HomeShellState extends State<HomeShell> {
     Downloads.notificationTitle = l.appName;
     Downloads.notificationText = (n, title) => l.downloadingNotification(n, title);
 
+    return SignalBuilder(builder: (context) {
+    final newCount = subscriptionNewCount.value;
+    Widget navIcon(IconData icon, {required bool badge}) {
+      if (!badge || newCount <= 0) return Icon(icon);
+      final text = newCount > 99 ? '99+' : '$newCount';
+      return Badge(label: Text(text), child: Icon(icon));
+    }
+
     final dests = [
-      (Icons.home_outlined, Icons.home, l.home),
-      (Icons.subscriptions_outlined, Icons.subscriptions, l.subscriptions),
-      (Icons.person_outline, Icons.person, l.mine),
+      (Icons.home_outlined, Icons.home, l.home, false),
+      (Icons.subscriptions_outlined, Icons.subscriptions, l.subscriptions, true),
+      (Icons.person_outline, Icons.person, l.mine, false),
     ];
     final body = IndexedStack(index: _index, children: _pages);
     final wide = MediaQuery.sizeOf(context).width >= 720;
@@ -46,7 +84,12 @@ class HomeShellState extends State<HomeShell> {
           selectedIndex: _index,
           onDestinationSelected: select,
           destinations: [
-            for (final d in dests) NavigationDestination(icon: Icon(d.$1), selectedIcon: Icon(d.$2), label: d.$3),
+            for (final d in dests)
+              NavigationDestination(
+                icon: navIcon(d.$1, badge: d.$4),
+                selectedIcon: navIcon(d.$2, badge: d.$4),
+                label: d.$3,
+              ),
           ],
         ),
       );
@@ -70,7 +113,11 @@ class HomeShellState extends State<HomeShell> {
               ),
               destinations: [
                 for (final d in dests)
-                  NavigationRailDestination(icon: Icon(d.$1), selectedIcon: Icon(d.$2), label: Text(d.$3)),
+                  NavigationRailDestination(
+                    icon: navIcon(d.$1, badge: d.$4),
+                    selectedIcon: navIcon(d.$2, badge: d.$4),
+                    label: Text(d.$3),
+                  ),
               ],
             ),
           ),
@@ -79,5 +126,6 @@ class HomeShellState extends State<HomeShell> {
         ],
       ),
     );
+    });
   }
 }

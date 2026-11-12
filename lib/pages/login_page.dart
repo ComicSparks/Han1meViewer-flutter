@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/errors.dart';
+import '../core/metrics.dart';
 import '../core/session.dart';
 import '../l10n/gen/app_localizations.dart';
 import '../src/rust/api/app.dart' as rapi;
@@ -37,6 +38,7 @@ class _LoginPageState extends State<LoginPage> {
       Session.refresh();
       if (!mounted) return;
       if (ok && Session.loggedIn) {
+        Metrics.note('login');
         toast(context, AppLocalizations.of(context).loginSuccess);
         Navigator.of(context).pop(true);
       } else if (ok) {

@@ -1064,6 +1064,8 @@ class SearchParams {
 class SubscriptionArtist {
   final String name;
   final String avatar;
+
+  /// 作者主页 `/user/{id}`，有则进作者影片页
   final String? userId;
 
   const SubscriptionArtist({

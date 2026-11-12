@@ -4,10 +4,13 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/app.dart';
+import 'api/cfg.dart';
 import 'api/download.dart';
 import 'api/hanime.dart';
 import 'api/local.dart';
+import 'api/metrics.dart';
 import 'api/models.dart';
+import 'api/pro.dart';
 import 'api/user.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -27,6 +30,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException dco_decode_AnyhowException(dynamic raw);
 
   @protected
+  Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
+
+  @protected
   RustStreamSink<CfChallengeEvent> dco_decode_StreamSink_cf_challenge_event_Sse(
     dynamic raw,
   );
@@ -38,6 +44,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   String dco_decode_String(dynamic raw);
+
+  @protected
+  AppConfig dco_decode_app_config(dynamic raw);
 
   @protected
   Artist dco_decode_artist(dynamic raw);
@@ -169,6 +178,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
   List<SubscriptionArtist> dco_decode_list_subscription_artist(dynamic raw);
 
   @protected
@@ -232,6 +244,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Playlists dco_decode_playlists(dynamic raw);
 
   @protected
+  ProInfoAf dco_decode_pro_info_af(dynamic raw);
+
+  @protected
+  ProInfoAll dco_decode_pro_info_all(dynamic raw);
+
+  @protected
+  ProInfoPat dco_decode_pro_info_pat(dynamic raw);
+
+  @protected
+  (String, String) dco_decode_record_string_string(dynamic raw);
+
+  @protected
   SearchParams dco_decode_search_params(dynamic raw);
 
   @protected
@@ -274,6 +298,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
+  Map<String, String> sse_decode_Map_String_String_None(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RustStreamSink<CfChallengeEvent> sse_decode_StreamSink_cf_challenge_event_Sse(
     SseDeserializer deserializer,
   );
@@ -285,6 +314,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
+
+  @protected
+  AppConfig sse_decode_app_config(SseDeserializer deserializer);
 
   @protected
   Artist sse_decode_artist(SseDeserializer deserializer);
@@ -428,6 +460,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<SubscriptionArtist> sse_decode_list_subscription_artist(
     SseDeserializer deserializer,
   );
@@ -507,6 +544,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Playlists sse_decode_playlists(SseDeserializer deserializer);
 
   @protected
+  ProInfoAf sse_decode_pro_info_af(SseDeserializer deserializer);
+
+  @protected
+  ProInfoAll sse_decode_pro_info_all(SseDeserializer deserializer);
+
+  @protected
+  ProInfoPat sse_decode_pro_info_pat(SseDeserializer deserializer);
+
+  @protected
+  (String, String) sse_decode_record_string_string(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   SearchParams sse_decode_search_params(SseDeserializer deserializer);
 
   @protected
@@ -554,6 +605,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_Map_String_String_None(
+    Map<String, String> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_cf_challenge_event_Sse(
     RustStreamSink<CfChallengeEvent> self,
     SseSerializer serializer,
@@ -567,6 +624,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_app_config(AppConfig self, SseSerializer serializer);
 
   @protected
   void sse_encode_artist(Artist self, SseSerializer serializer);
@@ -752,6 +812,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_string_string(
+    List<(String, String)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_subscription_artist(
     List<SubscriptionArtist> self,
     SseSerializer serializer,
@@ -849,6 +915,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_playlists(Playlists self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pro_info_af(ProInfoAf self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pro_info_all(ProInfoAll self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pro_info_pat(ProInfoPat self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_string_string(
+    (String, String) self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_search_params(SearchParams self, SseSerializer serializer);

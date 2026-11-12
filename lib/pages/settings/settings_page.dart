@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:signals_flutter/signals_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-
+import '../../core/app_update.dart';
 import '../../core/errors.dart';
 import '../../core/native.dart';
 import '../../core/nav.dart';
 import '../../core/net_settings.dart';
 import '../../core/prefs.dart';
+import '../../core/pro.dart';
+import '../../core/sub_updates.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../src/rust/api/app.dart' as rapi;
 import '../../src/rust/api/models.dart';
@@ -15,6 +16,7 @@ import '../../webview/web_auth.dart';
 import '../../widgets/common.dart';
 import '../lock/lock_screen.dart';
 import '../mine/keyframes_page.dart';
+import '../pro/pro_page.dart';
 import 'network_settings_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -226,9 +228,43 @@ class _SettingsPageState extends State<SettingsPage> {
               title: Text(l.downloadConcurrency),
               subtitle: Text('${_net.downloadConcurrency}'),
               onTap: () async {
-                final v = await _choose(l.downloadConcurrency, [for (final n in [1, 2, 3, 4, 5]) (n, '$n')],
-                    _net.downloadConcurrency);
+                final pro = Pro.powered.value;
+                final v = await showDialog<int>(
+                  context: context,
+                  builder: (c) => SimpleDialog(
+                    title: Text(l.downloadConcurrency),
+                    children: [
+                      for (final n in [1, 2, 3, 4, 5])
+                        ListTile(
+                          title: Text('$n', style: TextStyle(color: n > 1 && !pro ? Theme.of(c).disabledColor : null)),
+                          trailing: _net.downloadConcurrency == n ? const Icon(Icons.check) : null,
+                          onTap: () {
+                            if (n > 1 && !Pro.isPro) {
+                              Navigator.pop(c);
+                              Future.microtask(() {
+                                if (!context.mounted) return;
+                                toast(context, l.needPro);
+                                push(context, const ProPage());
+                              });
+                              return;
+                            }
+                            Navigator.pop(c, n);
+                          },
+                        ),
+                    ],
+                  ),
+                );
                 if (v != null) _saveNet(_net.copyWith(downloadConcurrency: v));
+              },
+            ),
+            SwitchListTile(
+              secondary: const Icon(Icons.fiber_new_outlined),
+              title: Text(l.subscriptionUpdates),
+              subtitle: Text(l.subscriptionUpdatesHint),
+              value: Prefs.subUpdates.signal.value,
+              onChanged: (v) {
+                Prefs.subUpdates.value = v;
+                if (!v) subscriptionNewCount.value = 0;
               },
             ),
             ListTile(
@@ -347,12 +383,36 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: Text(_version),
             ),
             ListTile(
-              leading: const Icon(Icons.code),
-              title: Text(l.originalProject),
-              subtitle: const Text('github.com/5APU-A340/Han1meViewer-Remastered'),
-              onTap: () => launchUrl(Uri.parse('https://github.com/5APU-A340/Han1meViewer-Remastered'),
-                  mode: LaunchMode.externalApplication),
+              leading: const Icon(Icons.system_update_alt),
+              title: Text(l.checkUpdate),
+              onTap: () async {
+                toast(context, l.checkingUpdate);
+                await AppUpdate.refresh();
+                if (!context.mounted) return;
+                final found = AppUpdate.latest.value;
+                toast(context, found == null ? l.alreadyLatest : l.newVersionFound(found));
+              },
             ),
+            if (AppUpdate.latest.value != null)
+              ListTile(
+                leading: const Icon(Icons.new_releases_outlined),
+                title: Text(l.newVersionFound(AppUpdate.latest.value!)),
+                subtitle: Text(
+                  AppUpdate.changeLog.value.isEmpty ? l.downloadUpdate : AppUpdate.changeLog.value,
+                  maxLines: 8,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: AppUpdate.openDownload,
+              ),
+            if (AppUpdate.links.value.isNotEmpty) ...[
+              _header(l.friendLinks),
+              for (final entry in AppUpdate.links.value.entries)
+                ListTile(
+                  leading: const Icon(Icons.link),
+                  title: Text(entry.key),
+                  onTap: () => AppUpdate.openHttp(entry.value),
+                ),
+            ],
           ],
         ),
       ),

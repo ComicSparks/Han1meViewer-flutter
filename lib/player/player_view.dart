@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:volume_controller/volume_controller.dart';
 
+import '../core/metrics.dart';
 import '../core/prefs.dart';
 import '../l10n/gen/app_localizations.dart';
 import '../src/rust/api/models.dart';
@@ -29,6 +30,9 @@ class PlayerView extends StatefulWidget {
   final VoidCallback? onRetry;
   final Widget? placeholder;
 
+  /// 详情还没拿到。此时不要把未初始化当成正在缓冲。
+  final bool pageFailed;
+
   const PlayerView({
     super.key,
     required this.player,
@@ -44,6 +48,7 @@ class PlayerView extends StatefulWidget {
     this.onAddKeyframe,
     this.onRetry,
     this.placeholder,
+    this.pageFailed = false,
   });
 
   @override
@@ -55,6 +60,7 @@ enum _VDrag { none, brightness, volume }
 class PlayerViewState extends State<PlayerView> {
   bool _visible = false;
   bool _started = false;
+  bool _notedPlay = false;
   bool _sawCompleted = false;
   Timer? _hideTimer;
   Duration? _seekPreview;
@@ -109,7 +115,13 @@ class PlayerViewState extends State<PlayerView> {
 
   void _onPlayer() {
     final v = _p.value.value;
-    if (v.playing) _started = true;
+    if (v.playing) {
+      _started = true;
+      if (!_notedPlay) {
+        _notedPlay = true;
+        Metrics.note('play');
+      }
+    }
     if (v.completed && !_sawCompleted) {
       _sawCompleted = true;
       if (mounted) _reveal(fadeOut: false);
@@ -279,6 +291,8 @@ class PlayerViewState extends State<PlayerView> {
             builder: (context, v, _) {
               const white = TextStyle(color: Colors.white, shadows: [Shadow(blurRadius: 4)]);
               final countdown = _countdown(v, white);
+              final pinBack = widget.onBack != null &&
+                  (widget.pageFailed || !_started || !v.initialized || v.error != null);
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: _onSingleTap,
@@ -298,7 +312,7 @@ class PlayerViewState extends State<PlayerView> {
                     _p.surface(),
                     if (v.suspended && widget.placeholder != null && v.error == null) widget.placeholder!,
                     if (!v.initialized && !v.suspended && widget.placeholder != null && v.error == null) widget.placeholder!,
-                    if (v.error == null && !v.suspended && (v.buffering || !v.initialized))
+                    if (!widget.pageFailed && v.error == null && !v.suspended && (v.buffering || !v.initialized))
                       const Center(child: CircularProgressIndicator(color: Colors.white)),
                     if (v.error != null)
                       Center(
@@ -338,8 +352,12 @@ class PlayerViewState extends State<PlayerView> {
                     AnimatedOpacity(
                       opacity: _visible ? 1 : 0,
                       duration: const Duration(milliseconds: 300),
-                      child: IgnorePointer(ignoring: !_visible, child: _controls(context, v, l)),
+                      child: IgnorePointer(
+                        ignoring: !_visible,
+                        child: _controls(context, v, l, includeBack: !pinBack),
+                      ),
                     ),
+                    if (pinBack) _backButton(),
                   ],
                 ),
               );
@@ -349,7 +367,38 @@ class PlayerViewState extends State<PlayerView> {
     );
   }
 
-  Widget _controls(BuildContext context, PlayerValue v, AppLocalizations l) {
+  Widget _backButton() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.black54, Colors.transparent],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          left: widget.fullscreen,
+          right: widget.fullscreen,
+          top: widget.fullscreen,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              color: Colors.white,
+              icon: const BackButtonIcon(),
+              onPressed: widget.onBack,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _controls(BuildContext context, PlayerValue v, AppLocalizations l, {required bool includeBack}) {
     const iconColor = Colors.white;
     final total = v.duration.inMilliseconds.toDouble();
     final pos = v.position.inMilliseconds.clamp(0, total > 0 ? total : 0).toDouble();
@@ -375,7 +424,9 @@ class PlayerViewState extends State<PlayerView> {
               child: Row(
                 children: [
                   if (widget.onBack != null)
-                    IconButton(color: iconColor, icon: const BackButtonIcon(), onPressed: widget.onBack),
+                    includeBack
+                        ? IconButton(color: iconColor, icon: const BackButtonIcon(), onPressed: widget.onBack)
+                        : const SizedBox(width: 48),
                   Expanded(
                     child: Text(
                       widget.fullscreen ? widget.title : '',

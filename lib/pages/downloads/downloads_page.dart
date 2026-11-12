@@ -8,12 +8,15 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 import '../../core/downloads.dart';
 import '../../core/errors.dart';
+import '../../core/export_name.dart';
 import '../../core/nav.dart';
+import '../../core/pro.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../src/rust/api/download.dart' as dl;
 import '../../src/rust/api/models.dart';
 import '../../widgets/common.dart';
 import '../../widgets/net_image.dart';
+import '../pro/pro_page.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -25,14 +28,28 @@ class DownloadsPage extends StatefulWidget {
 class _DownloadsPageState extends State<DownloadsPage> {
   int _group = -1;
   String _keyword = '';
+  bool _selecting = false;
+  final Set<String> _selected = {};
+
+  String _keyOf(DownloadTask t) => '${t.videoCode}\u0000${t.quality}';
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.downloads),
+        title: Text(_selecting ? l.selectedCount(_selected.length) : l.downloads),
+        leading: _selecting ? IconButton(icon: const Icon(Icons.close), onPressed: _exitSelect) : null,
         actions: [
+          if (_selecting) ...[
+            IconButton(
+              tooltip: l.delete,
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _selected.isEmpty ? null : _deleteSelected,
+            ),
+            _exportButton(l),
+          ] else
+            IconButton(tooltip: l.multiSelect, icon: const Icon(Icons.checklist), onPressed: () => setState(() => _selecting = true)),
           PopupMenuButton<String>(
             onSelected: (v) async {
               switch (v) {
@@ -126,7 +143,13 @@ class _DownloadsPageState extends State<DownloadsPage> {
               else
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, i) => _DoneTile(done[i], groups: groups),
+                    (context, i) => _DoneTile(
+                      done[i],
+                      groups: groups,
+                      selecting: _selecting,
+                      selected: _selected.contains(_keyOf(done[i])),
+                      onToggle: () => _toggle(done[i]),
+                    ),
                     childCount: done.length,
                   ),
                 ),
@@ -173,6 +196,119 @@ class _DownloadsPageState extends State<DownloadsPage> {
       return;
     }
     await Downloads.reload();
+  }
+
+  void _exitSelect() => setState(() {
+        _selecting = false;
+        _selected.clear();
+      });
+
+  void _toggle(DownloadTask t) {
+    final key = _keyOf(t);
+    setState(() {
+      if (!_selected.add(key)) _selected.remove(key);
+    });
+  }
+
+  List<DownloadTask> _picked() => Downloads.tasks.value
+      .where((t) => t.state == DownloadState.finished && _selected.contains(_keyOf(t)))
+      .toList();
+
+  Widget _exportButton(AppLocalizations l) {
+    return SignalBuilder(
+      builder: (context) {
+        final pro = Pro.powered.value;
+        final label = Platform.isAndroid || Platform.isIOS ? l.saveToGallery : l.exportFile;
+        return IconButton(
+          tooltip: label,
+          onPressed: () => _exportSelected(),
+          icon: Icon(Icons.ios_share, color: pro ? null : Theme.of(context).disabledColor),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteSelected() async {
+    final tasks = _picked();
+    if (tasks.isEmpty) return;
+    if (!await confirm(context, AppLocalizations.of(context).deleteDownloadConfirm)) return;
+    for (final t in tasks) {
+      await Downloads.delete(t);
+    }
+    if (mounted) _exitSelect();
+  }
+
+  Future<void> _exportSelected() async {
+    final l = AppLocalizations.of(context);
+    if (!Pro.isPro) {
+      toast(context, l.needPro);
+      push(context, const ProPage());
+      return;
+    }
+    final tasks = _picked();
+    if (tasks.isEmpty) return;
+    final needShorten = !(Platform.isAndroid || Platform.isIOS) && tasks.any((t) => _nameFor(t).shortened);
+    if (needShorten && !await confirm(context, l.exportNameTooLong)) return;
+    var ok = 0;
+    for (final t in tasks) {
+      if (!mounted) return;
+      if (await exportDownload(context, t, confirmed: true)) ok++;
+    }
+    if (mounted && ok > 0) toast(context, l.exported);
+  }
+}
+
+ExportName _nameFor(DownloadTask t) {
+  final ext = t.videoPath.split('.').last;
+  return safeExportName(t.title, t.quality, ext);
+}
+
+Future<bool> exportDownload(BuildContext context, DownloadTask t, {required bool confirmed}) async {
+  final l = AppLocalizations.of(context);
+  try {
+    if (Platform.isAndroid || Platform.isIOS) {
+      if (pathTooLong(t.videoPath)) {
+        toast(context, l.exportNameTooLong);
+        return false;
+      }
+      if (!await Gal.hasAccess()) await Gal.requestAccess();
+      await Gal.putVideo(t.videoPath, album: 'HaVF');
+      if (context.mounted && !confirmed) toast(context, l.exported);
+      return true;
+    }
+    final fitted = _nameFor(t);
+    var asked = confirmed;
+    if (fitted.shortened && !asked) {
+      if (!context.mounted || !await confirm(context, l.exportNameTooLong)) return false;
+      asked = true;
+    }
+    if (!context.mounted) return false;
+    final loc = await getSaveLocation(suggestedName: fitted.fileName);
+    if (loc == null || !context.mounted) return false;
+    var dest = loc.path;
+    if (pathTooLong(dest)) {
+      final sep = Platform.pathSeparator;
+      final slash = dest.lastIndexOf(sep);
+      final dir = slash < 0 ? '' : dest.substring(0, slash);
+      final name = slash < 0 ? dest : dest.substring(slash + 1);
+      final shrunk = shrinkFileName(dir, name);
+      if (shrunk == null) {
+        toast(context, l.exportFailed);
+        return false;
+      }
+      dest = dir.isEmpty ? shrunk : '$dir$sep$shrunk';
+      if (!asked && !await confirm(context, l.exportNameTooLong)) return false;
+    }
+    if (pathTooLong(dest)) {
+      if (context.mounted) toast(context, l.exportFailed);
+      return false;
+    }
+    await File(t.videoPath).copy(dest);
+    if (context.mounted && !confirmed) toast(context, l.exported);
+    return true;
+  } catch (e) {
+    if (context.mounted) toast(context, '${l.exportFailed}: $e');
+    return false;
   }
 }
 
@@ -233,26 +369,18 @@ class _ActiveTile extends StatelessWidget {
 class _DoneTile extends StatelessWidget {
   final DownloadTask t;
   final List<DownloadGroup> groups;
-  const _DoneTile(this.t, {required this.groups});
+  final bool selecting;
+  final bool selected;
+  final VoidCallback onToggle;
+  const _DoneTile(this.t, {required this.groups, required this.selecting, required this.selected, required this.onToggle});
 
   Future<void> _export(BuildContext context) async {
-    final l = AppLocalizations.of(context);
-    try {
-      if (Platform.isAndroid || Platform.isIOS) {
-        if (!await Gal.hasAccess()) await Gal.requestAccess();
-        await Gal.putVideo(t.videoPath, album: 'HaVF');
-        if (context.mounted) toast(context, l.exported);
-      } else {
-        final ext = t.videoPath.split('.').last;
-        final safe = t.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-        final loc = await getSaveLocation(suggestedName: '$safe [${t.quality}].$ext');
-        if (loc == null) return;
-        await File(t.videoPath).copy(loc.path);
-        if (context.mounted) toast(context, l.exported);
-      }
-    } catch (e) {
-      if (context.mounted) toast(context, '${l.exportFailed}: $e');
+    if (!Pro.isPro) {
+      toast(context, AppLocalizations.of(context).needPro);
+      push(context, const ProPage());
+      return;
     }
+    await exportDownload(context, t, confirmed: false);
   }
 
   Future<void> _move(BuildContext context) async {
@@ -275,34 +403,51 @@ class _DoneTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final cover = ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: SizedBox(width: 96, height: 54, child: NetImage(t.coverUrl, localPath: t.coverPath)),
+    );
     return ListTile(
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: SizedBox(width: 96, height: 54, child: NetImage(t.coverUrl, localPath: t.coverPath)),
-      ),
+      leading: selecting
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(value: selected, onChanged: (_) => onToggle()),
+                cover,
+              ],
+            )
+          : cover,
       title: Text(t.title, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: Text('${t.quality} · ${formatBytes(t.length > 0 ? t.length : t.downloaded)}'),
-      onTap: () => openVideo(context, t.videoCode, localPath: t.videoPath, localTitle: t.title),
-      trailing: PopupMenuButton<String>(
-        onSelected: (v) async {
-          switch (v) {
-            case 'export':
-              await _export(context);
-            case 'share':
-              await SharePlus.instance.share(ShareParams(files: [XFile(t.videoPath)], title: t.title));
-            case 'move':
-              await _move(context);
-            case 'delete':
-              if (await confirm(context, l.deleteDownloadConfirm, content: t.title)) await Downloads.delete(t);
-          }
-        },
-        itemBuilder: (_) => [
-          PopupMenuItem(value: 'export', child: Text(Platform.isAndroid || Platform.isIOS ? l.saveToGallery : l.exportFile)),
-          if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) PopupMenuItem(value: 'share', child: Text(l.share)),
-          PopupMenuItem(value: 'move', child: Text(l.moveToGroup)),
-          PopupMenuItem(value: 'delete', child: Text(l.delete)),
-        ],
-      ),
+      onTap: selecting ? onToggle : () => openVideo(context, t.videoCode, localPath: t.videoPath, localTitle: t.title),
+      trailing: selecting
+          ? null
+          : PopupMenuButton<String>(
+              onSelected: (v) async {
+                switch (v) {
+                  case 'export':
+                    await _export(context);
+                  case 'share':
+                    await SharePlus.instance.share(ShareParams(files: [XFile(t.videoPath)], title: t.title));
+                  case 'move':
+                    await _move(context);
+                  case 'delete':
+                    if (await confirm(context, l.deleteDownloadConfirm, content: t.title)) await Downloads.delete(t);
+                }
+              },
+              itemBuilder: (c) => [
+                PopupMenuItem(
+                  value: 'export',
+                  child: Text(
+                    Platform.isAndroid || Platform.isIOS ? l.saveToGallery : l.exportFile,
+                    style: Pro.isPro ? null : TextStyle(color: Theme.of(c).disabledColor),
+                  ),
+                ),
+                if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) PopupMenuItem(value: 'share', child: Text(l.share)),
+                PopupMenuItem(value: 'move', child: Text(l.moveToGroup)),
+                PopupMenuItem(value: 'delete', child: Text(l.delete)),
+              ],
+            ),
     );
   }
 }

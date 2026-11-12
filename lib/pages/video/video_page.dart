@@ -522,6 +522,7 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
         onKeyframes: _showKeyframes,
         onAddKeyframe: _addKeyframe,
         onRetry: _retry,
+        pageFailed: _error != null && _video == null,
         placeholder: _video == null ? null : NetImage(_video!.coverUrl, fit: BoxFit.contain),
       );
 
@@ -598,6 +599,15 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
   }
 }
 
+void _copy(BuildContext context, String text) {
+  Clipboard.setData(ClipboardData(text: text));
+  toast(context, AppLocalizations.of(context).copied);
+}
+
+Widget _copyText(BuildContext context, String text, TextStyle? style) {
+  return GestureDetector(onLongPress: () => _copy(context, text), child: Text(text, style: style));
+}
+
 class _IntroView extends StatelessWidget {
   final _VideoPageState state;
   const _IntroView({required this.state});
@@ -616,11 +626,11 @@ class _IntroView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
-        SelectableText(v.title, style: theme.textTheme.titleMedium),
+        _copyText(context, v.title, theme.textTheme.titleMedium),
         if (v.chineseTitle != null && v.chineseTitle!.isNotEmpty && v.chineseTitle != v.title)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: SelectableText(v.chineseTitle!, style: theme.textTheme.bodyMedium),
+            child: _copyText(context, v.chineseTitle!, theme.textTheme.bodyMedium),
           ),
         if (meta.isNotEmpty)
           Padding(
@@ -635,6 +645,7 @@ class _IntroView extends StatelessWidget {
             title: Text(v.artist!.name),
             subtitle: Text(v.artist!.genre),
             onTap: () => state._openArtist(v.artist!),
+            onLongPress: () => _copy(context, v.artist!.name),
             trailing: v.artist!.post == null
                 ? null
                 : (state._subscribed ?? false)

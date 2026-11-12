@@ -257,6 +257,54 @@ abstract class AppLocalizations {
   /// **'链接已复制'**
   String get linkCopied;
 
+  /// No description provided for @copied.
+  ///
+  /// In zh, this message translates to:
+  /// **'已复制'**
+  String get copied;
+
+  /// No description provided for @needPro.
+  ///
+  /// In zh, this message translates to:
+  /// **'发电后才能使用'**
+  String get needPro;
+
+  /// No description provided for @exportNameTooLong.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件名或路径过长，将缩短标题后再导出'**
+  String get exportNameTooLong;
+
+  /// No description provided for @multiSelect.
+  ///
+  /// In zh, this message translates to:
+  /// **'多选'**
+  String get multiSelect;
+
+  /// No description provided for @selectedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选 {count} 项'**
+  String selectedCount(int count);
+
+  /// No description provided for @downloadQueued.
+  ///
+  /// In zh, this message translates to:
+  /// **'已加入 {added} 个，跳过 {skipped} 个'**
+  String downloadQueued(int added, int skipped);
+
+  /// No description provided for @subscriptionUpdates.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅更新提示'**
+  String get subscriptionUpdates;
+
+  /// No description provided for @subscriptionUpdatesHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'标出上次查看订阅之后出现的新影片'**
+  String get subscriptionUpdatesHint;
+
   /// No description provided for @playing.
   ///
   /// In zh, this message translates to:
@@ -959,6 +1007,30 @@ abstract class AppLocalizations {
   /// **'最早'**
   String get sortOldest;
 
+  /// No description provided for @userSortDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认'**
+  String get userSortDefault;
+
+  /// No description provided for @userSortLatest.
+  ///
+  /// In zh, this message translates to:
+  /// **'最新'**
+  String get userSortLatest;
+
+  /// No description provided for @userSortPopular.
+  ///
+  /// In zh, this message translates to:
+  /// **'最热门'**
+  String get userSortPopular;
+
+  /// No description provided for @userSortOldest.
+  ///
+  /// In zh, this message translates to:
+  /// **'最早'**
+  String get userSortOldest;
+
   /// No description provided for @account.
   ///
   /// In zh, this message translates to:
@@ -1439,12 +1511,6 @@ abstract class AppLocalizations {
   /// **'关于'**
   String get about;
 
-  /// No description provided for @originalProject.
-  ///
-  /// In zh, this message translates to:
-  /// **'原项目'**
-  String get originalProject;
-
   /// No description provided for @discardChanges.
   ///
   /// In zh, this message translates to:
@@ -1631,29 +1697,341 @@ abstract class AppLocalizations {
   /// **'会清除现有 cf_clearance，可能需要重新验证'**
   String get regenerateIdentityHint;
 
-  /// No description provided for @userSortDefault.
+  /// No description provided for @proTitle.
   ///
   /// In zh, this message translates to:
-  /// **'默认'**
-  String get userSortDefault;
+  /// **'发电'**
+  String get proTitle;
 
-  /// No description provided for @userSortLatest.
+  /// No description provided for @proCenter.
   ///
   /// In zh, this message translates to:
-  /// **'最新'**
-  String get userSortLatest;
+  /// **'发电中心'**
+  String get proCenter;
 
-  /// No description provided for @userSortPopular.
+  /// No description provided for @proPowered.
   ///
   /// In zh, this message translates to:
-  /// **'热门'**
-  String get userSortPopular;
+  /// **'发电中'**
+  String get proPowered;
 
-  /// No description provided for @userSortOldest.
+  /// No description provided for @proNotPowered.
   ///
   /// In zh, this message translates to:
-  /// **'最旧'**
-  String get userSortOldest;
+  /// **'未发电'**
+  String get proNotPowered;
+
+  /// No description provided for @proGuide.
+  ///
+  /// In zh, this message translates to:
+  /// **'发电状态绑定的是登录后的用户名。\n\n「我曾经发过电」同步已有状态\n「我刚才发了电」兑换代码\n「Patreon」是另一种发电方式\n更换「发电方式」可能解决连接失败'**
+  String get proGuide;
+
+  /// No description provided for @proSignIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'签到/兑换'**
+  String get proSignIn;
+
+  /// No description provided for @proPatreon.
+  ///
+  /// In zh, this message translates to:
+  /// **'Patreon'**
+  String get proPatreon;
+
+  /// No description provided for @proIHavePowered.
+  ///
+  /// In zh, this message translates to:
+  /// **'我曾经发过电'**
+  String get proIHavePowered;
+
+  /// No description provided for @proIJustPowered.
+  ///
+  /// In zh, this message translates to:
+  /// **'我刚才发了电'**
+  String get proIJustPowered;
+
+  /// No description provided for @proEnterCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入代码'**
+  String get proEnterCode;
+
+  /// No description provided for @proPowerMethod.
+  ///
+  /// In zh, this message translates to:
+  /// **'发电方式'**
+  String get proPowerMethod;
+
+  /// No description provided for @proChooseMethod.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择发电方式'**
+  String get proChooseMethod;
+
+  /// No description provided for @proClickPatToChange.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击下面的 Patreon 进行变更'**
+  String get proClickPatToChange;
+
+  /// No description provided for @proUpdatePat.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新 Patreon 状态'**
+  String get proUpdatePat;
+
+  /// No description provided for @proBindAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定到此账号'**
+  String get proBindAccount;
+
+  /// No description provided for @proChangePatKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'更换 Patreon 密钥'**
+  String get proChangePatKey;
+
+  /// No description provided for @proClearPat.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除 Patreon 信息'**
+  String get proClearPat;
+
+  /// No description provided for @proClickToBind.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击绑定'**
+  String get proClickToBind;
+
+  /// No description provided for @proEnterAuthCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入授权代码'**
+  String get proEnterAuthCode;
+
+  /// No description provided for @proPleaseWait.
+  ///
+  /// In zh, this message translates to:
+  /// **'请稍后'**
+  String get proPleaseWait;
+
+  /// No description provided for @proKeyRecorded.
+  ///
+  /// In zh, this message translates to:
+  /// **'密钥已录入'**
+  String get proKeyRecorded;
+
+  /// No description provided for @proPatAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'Patreon 账号'**
+  String get proPatAccount;
+
+  /// No description provided for @proBoundAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定账号'**
+  String get proBoundAccount;
+
+  /// No description provided for @proBindTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定时间'**
+  String get proBindTime;
+
+  /// No description provided for @proRebindTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'可以换绑时间'**
+  String get proRebindTime;
+
+  /// No description provided for @proPatBindHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请点击这里绑定到当前账号'**
+  String get proPatBindHint;
+
+  /// No description provided for @proPatRebindHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'绑定账号与当前登录用户名不一致，请换绑'**
+  String get proPatRebindHint;
+
+  /// No description provided for @proPatNotDetected.
+  ///
+  /// In zh, this message translates to:
+  /// **'未检测到入会'**
+  String get proPatNotDetected;
+
+  /// No description provided for @proPatNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态正常'**
+  String get proPatNormal;
+
+  /// No description provided for @proSynced.
+  ///
+  /// In zh, this message translates to:
+  /// **'已同步'**
+  String get proSynced;
+
+  /// No description provided for @proPageLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'未发电只能看前 {pages} 页'**
+  String proPageLimit(int pages);
+
+  /// No description provided for @proGo.
+  ///
+  /// In zh, this message translates to:
+  /// **'去发电'**
+  String get proGo;
+
+  /// No description provided for @proErrNetworkTimeout.
+  ///
+  /// In zh, this message translates to:
+  /// **'网络超时，请检查网络或更换发电方式'**
+  String get proErrNetworkTimeout;
+
+  /// No description provided for @proErrNetworkUnreachable.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接不上服务器，请检查网络或更换发电方式'**
+  String get proErrNetworkUnreachable;
+
+  /// No description provided for @proErrServerFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务器处理失败'**
+  String get proErrServerFailed;
+
+  /// No description provided for @proErrServerInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务器返回异常'**
+  String get proErrServerInvalid;
+
+  /// No description provided for @proErrRequestInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求无效'**
+  String get proErrRequestInvalid;
+
+  /// No description provided for @proErrOrderNotSynced.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单尚未同步，请稍后再试'**
+  String get proErrOrderNotSynced;
+
+  /// No description provided for @proErrOrderUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单已被使用'**
+  String get proErrOrderUsed;
+
+  /// No description provided for @proErrOrderAmount.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单金额无效'**
+  String get proErrOrderAmount;
+
+  /// No description provided for @proErrTicketNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'兑换券不存在'**
+  String get proErrTicketNotFound;
+
+  /// No description provided for @proErrTicketUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'兑换券已被使用'**
+  String get proErrTicketUsed;
+
+  /// No description provided for @proErrTicketEventUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'活动兑换券已参与'**
+  String get proErrTicketEventUsed;
+
+  /// No description provided for @proErrDeviceTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'请检查设备时间'**
+  String get proErrDeviceTime;
+
+  /// No description provided for @proErrPatNotBound.
+  ///
+  /// In zh, this message translates to:
+  /// **'尚未绑定密钥'**
+  String get proErrPatNotBound;
+
+  /// No description provided for @browserAddressHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入网址'**
+  String get browserAddressHint;
+
+  /// No description provided for @browserBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'后退'**
+  String get browserBack;
+
+  /// No description provided for @browserForward.
+  ///
+  /// In zh, this message translates to:
+  /// **'前进'**
+  String get browserForward;
+
+  /// No description provided for @checkUpdate.
+  ///
+  /// In zh, this message translates to:
+  /// **'检查更新'**
+  String get checkUpdate;
+
+  /// No description provided for @checkingUpdate.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在检查更新'**
+  String get checkingUpdate;
+
+  /// No description provided for @alreadyLatest.
+  ///
+  /// In zh, this message translates to:
+  /// **'已是最新版本'**
+  String get alreadyLatest;
+
+  /// No description provided for @newVersionFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现新版本 {version}'**
+  String newVersionFound(String version);
+
+  /// No description provided for @updateTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现新版本'**
+  String get updateTitle;
+
+  /// No description provided for @forceUpdateMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现新版本 {version}，请立即更新后继续使用'**
+  String forceUpdateMessage(String version);
+
+  /// No description provided for @downloadUpdate.
+  ///
+  /// In zh, this message translates to:
+  /// **'去下载'**
+  String get downloadUpdate;
+
+  /// No description provided for @friendLinks.
+  ///
+  /// In zh, this message translates to:
+  /// **'友情链接'**
+  String get friendLinks;
 }
 
 class _AppLocalizationsDelegate

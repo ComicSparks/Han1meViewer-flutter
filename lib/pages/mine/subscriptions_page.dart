@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import '../../core/nav.dart';
+import '../../core/prefs.dart';
 import '../../core/session.dart';
+import '../../core/sub_updates.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../src/rust/api/hanime.dart' as hanime;
 import '../../src/rust/api/models.dart';
 import '../../widgets/common.dart';
+import '../../widgets/multi_select.dart';
 import '../../widgets/net_image.dart';
 import '../login_page.dart';
 import '../search/search_page.dart';
@@ -16,13 +19,57 @@ class SubscriptionsPage extends StatefulWidget {
   const SubscriptionsPage({super.key});
 
   @override
-  State<SubscriptionsPage> createState() => _SubscriptionsPageState();
+  State<SubscriptionsPage> createState() => SubscriptionsPageState();
 }
 
-class _SubscriptionsPageState extends State<SubscriptionsPage> with RouteAware {
+class SubscriptionsPageState extends State<SubscriptionsPage> with RouteAware {
   final _grid = GlobalKey<PagedVideoGridState>();
   ModalRoute<void>? _route;
   List<SubscriptionArtist> _artists = [];
+  bool _selecting = false;
+  final Set<String> _selected = {};
+  Set<String> _newCodes = {};
+
+  void refresh() => _grid.currentState?.refresh();
+
+  /// 离开订阅页时，把当前最前面的番号记成已查看。
+  void markSeen() {
+    if (!Prefs.subUpdates.value) {
+      subscriptionNewCount.value = 0;
+      return;
+    }
+    final first = _grid.currentState?.items.firstOrNull?.videoCode;
+    if (first != null && first.isNotEmpty) Prefs.subSeenCode.value = first;
+    subscriptionNewCount.value = 0;
+    if (mounted && _newCodes.isNotEmpty) setState(() => _newCodes = {});
+  }
+
+  List<HanimeInfo> _picked() =>
+      _grid.currentState?.items.where((e) => _selected.contains(e.videoCode)).toList() ?? const [];
+
+  void _toggle(HanimeInfo info) {
+    setState(() {
+      if (!_selected.add(info.videoCode)) _selected.remove(info.videoCode);
+    });
+  }
+
+  void _noteNew(List<HanimeInfo> videos) {
+    if (!Prefs.subUpdates.value) {
+      subscriptionNewCount.value = 0;
+      if (_newCodes.isNotEmpty && mounted) setState(() => _newCodes = {});
+      return;
+    }
+    final seen = Prefs.subSeenCode.value;
+    final codes = <String>{};
+    if (seen.isNotEmpty) {
+      for (final v in videos) {
+        if (v.videoCode == seen) break;
+        codes.add(v.videoCode);
+      }
+    }
+    subscriptionNewCount.value = codes.length;
+    if (mounted) setState(() => _newCodes = codes);
+  }
 
   @override
   void didChangeDependencies() {
@@ -65,21 +112,60 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> with RouteAware {
       builder: (context) {
         final loggedIn = Session.state.value.loggedIn;
         if (!loggedIn) _artists = [];
+        final showNew = Prefs.subUpdates.signal.value ? _newCodes : const <String>{};
         return Scaffold(
           appBar: AppBar(
-            title: Text(l.subscriptions),
+            leading: _selecting
+                ? IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() {
+                      _selecting = false;
+                      _selected.clear();
+                    }),
+                  )
+                : null,
+            title: Text(_selecting ? l.selectedCount(_selected.length) : l.subscriptions),
             actions: [
-              if (loggedIn)
+              if (loggedIn && !_selecting)
                 IconButton(
                   tooltip: l.refresh,
-                  onPressed: () => _grid.currentState?.refresh(),
+                  onPressed: refresh,
                   icon: const Icon(Icons.refresh),
+                ),
+              if (loggedIn)
+                IconButton(
+                  tooltip: l.multiSelect,
+                  icon: const Icon(Icons.checklist),
+                  onPressed: () => setState(() {
+                    _selecting = !_selecting;
+                    if (!_selecting) _selected.clear();
+                  }),
                 ),
             ],
           ),
-          body: loggedIn
-              ? PagedVideoGrid(key: _grid, loader: _loader, header: _artistsHeader())
-              : _loginPrompt(l),
+          body: !loggedIn
+              ? _loginPrompt(l)
+              : Column(
+                  children: [
+                    Expanded(
+                      child: PagedVideoGrid(
+                        key: _grid,
+                        loader: _loader,
+                        header: _artistsHeader(),
+                        selecting: _selecting,
+                        selected: _selected,
+                        onToggle: _toggle,
+                        newCodes: showNew,
+                        onFirstPage: (r) => _noteNew(r.items),
+                      ),
+                    ),
+                    if (_selecting)
+                      MultiActionBar(
+                        count: _selected.length,
+                        onDownload: () => downloadHanimeSelection(context, _picked()),
+                      ),
+                  ],
+                ),
         );
       },
     );

@@ -1,0 +1,141 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.38.4"
+
+jobs:
+  ci-pass:
+    name: CI is green
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - check_release
+      - build
+    steps:
+      - name: Require successful builds
+        run: |
+          test "${{ needs.check_release.result }}" = "success"
+          test "${{ needs.build.result }}" = "success"
+
+  check_release:
+    name: Check release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create release when the tag is missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash ci/ensure_release.sh
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs:
+      - check_release
+    runs-on: ${{ matrix.host }}
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows
+            host: windows-latest
+            rust_targets: ""
+            script: build-windows.sh
+          - target: macos
+            host: macos-latest
+            rust_targets: aarch64-apple-darwin
+            script: build-macos-dmg.sh
+          - target: linux
+            host: ubuntu-latest
+            rust_targets: ""
+            script: build-linux-appimage.sh
+          - target: ios
+            host: macos-latest
+            rust_targets: aarch64-apple-ios
+            script: build-ipa.sh
+          - target: android
+            host: ubuntu-latest
+            rust_targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+            script: build-android.sh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check asset
+        id: check_asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ matrix.target }}
+        run: bash ci/check_asset.sh
+
+      - name: Checkout core
+        if: steps.check_asset.outputs.skip_build != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ComicSparks/Han1meViewer-flutter-core
+          token: ${{ secrets.CORE_TOKEN }}
+          path: rust
+
+      - name: Setup Rust
+        if: steps.check_asset.outputs.skip_build != 'true' && matrix.rust_targets == ''
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust
+        if: steps.check_asset.outputs.skip_build != 'true' && matrix.rust_targets != ''
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+
+      - name: Cache Rust
+        if: steps.check_asset.outputs.skip_build != 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Setup Flutter
+        if: steps.check_asset.outputs.skip_build != 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Linux packages
+        if: steps.check_asset.outputs.skip_build != 'true' && matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libfuse2 libmpv-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev || sudo apt-get install -y libwebkit2gtk-4.0-dev
+
+      - name: Setup Java
+        if: steps.check_asset.outputs.skip_build != 'true' && matrix.target == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build
+        if: steps.check_asset.outputs.skip_build != 'true'
+        run: bash "scripts/${{ matrix.script }}"
+
+      - name: Sign APK
+        if: steps.check_asset.outputs.skip_build != 'true' && matrix.target == 'android'
+        env:
+          KEY_FILE_BASE64: ${{ secrets.KEY_FILE_BASE64 }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: bash scripts/sign-apk-github-actions.sh
+
+      - name: Upload release asset
+        if: steps.check_asset.outputs.skip_build != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ matrix.target }}
+        run: bash ci/upload_asset.sh

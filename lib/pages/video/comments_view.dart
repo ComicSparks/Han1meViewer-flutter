@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/errors.dart';
 import '../../core/search_options.dart';
@@ -273,7 +274,13 @@ class _CommentTileState extends State<CommentTile> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                SelectableText(c.content),
+                GestureDetector(
+                  onLongPress: () {
+                    Clipboard.setData(ClipboardData(text: c.content));
+                    toast(context, l.copied);
+                  },
+                  child: Text(c.content),
+                ),
                 Row(
                   children: [
                     IconButton(

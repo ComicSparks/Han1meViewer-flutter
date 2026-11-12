@@ -9,11 +9,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'core/app_update.dart';
 import 'core/downloads.dart';
+import 'core/metrics.dart';
 import 'core/nav.dart';
 import 'core/prefs.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'pages/lock/lock_screen.dart';
+import 'pages/lock/unlock_browser_page.dart';
 import 'pages/shell.dart';
 import 'src/rust/api/hanime.dart' as hanime;
 
@@ -94,6 +97,7 @@ class AppGuard extends StatefulWidget {
 }
 
 class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
+  bool _browserPassed = false;
   bool _locked = false;
   bool _obscured = false;
   DateTime? _backgroundAt;
@@ -105,9 +109,33 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _browserPassed = Prefs.browserPassed.value;
+    if (_browserPassed) _enterApp();
+  }
+
+  void _enterApp() {
     _locked = _lockActive;
+    _obscured = false;
     _initLinks();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkClipboard());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Metrics.syncVersion();
+      Metrics.noteApp();
+      _checkClipboard();
+      _checkUpdate();
+    });
+  }
+
+  Future<void> _checkUpdate() async {
+    await AppUpdate.refresh();
+    if (!mounted || _locked) return;
+    final ctx = navigatorKey.currentContext;
+    if (ctx != null && ctx.mounted) await AppUpdate.maybeForce(ctx);
+  }
+
+  void _onBrowserUnlocked() {
+    Prefs.browserPassed.value = true;
+    setState(() => _browserPassed = true);
+    _enterApp();
   }
 
   @override
@@ -133,7 +161,7 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
   }
 
   Future<void> _checkClipboard() async {
-    if (!Prefs.clipboardDetect.value || _locked) return;
+    if (!_browserPassed || !Prefs.clipboardDetect.value || _locked) return;
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       final text = data?.text;
@@ -162,15 +190,18 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
           _locked = true;
         }
         setState(() => _obscured = false);
+        if (!_browserPassed) break;
         Downloads.onForeground();
+        Metrics.flush();
         _checkClipboard();
       case AppLifecycleState.inactive:
+        if (!_browserPassed) break;
         if (Prefs.blurInBackground.value || _lockActive) setState(() => _obscured = true);
       case AppLifecycleState.hidden:
       case AppLifecycleState.paused:
         _backgroundAt ??= DateTime.now();
-        if (Prefs.blurInBackground.value || _lockActive) setState(() => _obscured = true);
-        Downloads.onBackground();
+        if (_browserPassed && (Prefs.blurInBackground.value || _lockActive)) setState(() => _obscured = true);
+        if (_browserPassed) Downloads.onBackground();
       case AppLifecycleState.detached:
         break;
     }
@@ -178,6 +209,18 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    if (!_browserPassed) {
+      // builder 在 Navigator 外面，这里再套一层，地址栏和按钮才能找到 Overlay。
+      return Navigator(
+        pages: [
+          MaterialPage<void>(
+            key: const ValueKey('unlock-browser'),
+            child: UnlockBrowserPage(onUnlocked: _onBrowserUnlocked),
+          ),
+        ],
+        onDidRemovePage: (page) {},
+      );
+    }
     // 桌面端失焦不模糊，避免影响多窗口使用
     final allowObscure = Platform.isAndroid || Platform.isIOS;
     return Stack(
@@ -196,6 +239,7 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
               onUnlocked: () {
                 setState(() => _locked = false);
                 _checkClipboard();
+                _checkUpdate();
               },
             ),
           ),

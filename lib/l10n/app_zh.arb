@@ -26,6 +26,31 @@
   "empty": "这里什么都没有",
   "share": "分享",
   "linkCopied": "链接已复制",
+  "copied": "已复制",
+  "needPro": "发电后才能使用",
+  "exportNameTooLong": "文件名或路径过长，将缩短标题后再导出",
+  "multiSelect": "多选",
+  "selectedCount": "已选 {count} 项",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadQueued": "已加入 {added} 个，跳过 {skipped} 个",
+  "@downloadQueued": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "subscriptionUpdates": "订阅更新提示",
+  "subscriptionUpdatesHint": "标出上次查看订阅之后出现的新影片",
   "playing": "播放中",
   "removed": "已移除",
   "description": "简介",
@@ -185,6 +210,10 @@
   "sortLatest": "最新",
   "sortPopular": "最热门",
   "sortOldest": "最早",
+  "userSortDefault": "默认",
+  "userSortLatest": "最新",
+  "userSortPopular": "最热门",
+  "userSortOldest": "最早",
   "account": "账号资料",
   "accountStats": "{subs} 订阅者 · {videos} 部影片",
   "@accountStats": {
@@ -292,7 +321,6 @@
   "clearCache": "清理缓存",
   "clearCacheHint": "清理图片、页面与浏览器缓存，不影响下载和登录",
   "about": "关于",
-  "originalProject": "原项目",
   "discardChanges": "放弃未保存的修改？",
   "domain": "站点域名",
   "customMirror": "自定义镜像",
@@ -324,8 +352,81 @@
   "clearCf": "清除验证凭据",
   "regenerateIdentity": "重新生成设备身份",
   "regenerateIdentityHint": "会清除现有 cf_clearance，可能需要重新验证",
-  "userSortDefault": "默认",
-  "userSortLatest": "最新",
-  "userSortPopular": "热门",
-  "userSortOldest": "最旧"
+  "proTitle": "发电",
+  "proCenter": "发电中心",
+  "proPowered": "发电中",
+  "proNotPowered": "未发电",
+  "proGuide": "发电状态绑定的是登录后的用户名。\n\n「我曾经发过电」同步已有状态\n「我刚才发了电」兑换代码\n「Patreon」是另一种发电方式\n更换「发电方式」可能解决连接失败",
+  "proSignIn": "签到/兑换",
+  "proPatreon": "Patreon",
+  "proIHavePowered": "我曾经发过电",
+  "proIJustPowered": "我刚才发了电",
+  "proEnterCode": "输入代码",
+  "proPowerMethod": "发电方式",
+  "proChooseMethod": "选择发电方式",
+  "proClickPatToChange": "点击下面的 Patreon 进行变更",
+  "proUpdatePat": "更新 Patreon 状态",
+  "proBindAccount": "绑定到此账号",
+  "proChangePatKey": "更换 Patreon 密钥",
+  "proClearPat": "清除 Patreon 信息",
+  "proClickToBind": "点击绑定",
+  "proEnterAuthCode": "请输入授权代码",
+  "proPleaseWait": "请稍后",
+  "proKeyRecorded": "密钥已录入",
+  "proPatAccount": "Patreon 账号",
+  "proBoundAccount": "绑定账号",
+  "proBindTime": "绑定时间",
+  "proRebindTime": "可以换绑时间",
+  "proPatBindHint": "请点击这里绑定到当前账号",
+  "proPatRebindHint": "绑定账号与当前登录用户名不一致，请换绑",
+  "proPatNotDetected": "未检测到入会",
+  "proPatNormal": "状态正常",
+  "proSynced": "已同步",
+  "proPageLimit": "未发电只能看前 {pages} 页",
+  "@proPageLimit": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "proGo": "去发电",
+  "proErrNetworkTimeout": "网络超时，请检查网络或更换发电方式",
+  "proErrNetworkUnreachable": "连接不上服务器，请检查网络或更换发电方式",
+  "proErrServerFailed": "服务器处理失败",
+  "proErrServerInvalid": "服务器返回异常",
+  "proErrRequestInvalid": "请求无效",
+  "proErrOrderNotSynced": "订单尚未同步，请稍后再试",
+  "proErrOrderUsed": "订单已被使用",
+  "proErrOrderAmount": "订单金额无效",
+  "proErrTicketNotFound": "兑换券不存在",
+  "proErrTicketUsed": "兑换券已被使用",
+  "proErrTicketEventUsed": "活动兑换券已参与",
+  "proErrDeviceTime": "请检查设备时间",
+  "proErrPatNotBound": "尚未绑定密钥",
+  "browserAddressHint": "输入网址",
+  "browserBack": "后退",
+  "browserForward": "前进",
+  "checkUpdate": "检查更新",
+  "checkingUpdate": "正在检查更新",
+  "alreadyLatest": "已是最新版本",
+  "newVersionFound": "发现新版本 {version}",
+  "@newVersionFound": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateTitle": "发现新版本",
+  "forceUpdateMessage": "发现新版本 {version}，请立即更新后继续使用",
+  "@forceUpdateMessage": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadUpdate": "去下载",
+  "friendLinks": "友情链接"
 }

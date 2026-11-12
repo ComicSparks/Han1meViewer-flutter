@@ -52,6 +52,11 @@ class Prefs {
   static late final Pref<bool> hideComments;
   static late final Pref<bool> clipboardDetect;
   static late final Pref<String> lastClipboardCode;
+  static late final Pref<String> searchSort;
+  static late final Pref<String> historySort;
+  static late final Pref<String> userVideosSort;
+  static late final Pref<bool> subUpdates;
+  static late final Pref<String> subSeenCode;
 
   // 隐私
   static late final Pref<bool> lockEnabled;
@@ -60,6 +65,7 @@ class Prefs {
   static late final Pref<int> lockDelaySec;
   static late final Pref<bool> blurInBackground;
   static late final Pref<String> disguiseIcon;
+  static late final Pref<bool> browserPassed;
 
   static void load() {
     theme = Pref('theme', 'system');
@@ -77,12 +83,18 @@ class Prefs {
     hideComments = Pref('hide_comments', false);
     clipboardDetect = Pref('clipboard_detect', false);
     lastClipboardCode = Pref('last_clipboard_code', '');
+    searchSort = Pref('search_sort', '');
+    historySort = Pref('history_sort', 'latest');
+    userVideosSort = Pref('user_videos_sort', '');
+    subUpdates = Pref('sub_updates', false);
+    subSeenCode = Pref('sub_seen_code', '');
     lockEnabled = Pref('lock_enabled', false);
     pinHash = Pref('pin_hash', '');
     biometric = Pref('biometric', true);
     lockDelaySec = Pref('lock_delay', 0);
     blurInBackground = Pref('blur_background', true);
     disguiseIcon = Pref('disguise_icon', 'default');
+    browserPassed = Pref('browser_passed', false);
   }
 
   static ThemeMode get themeMode => switch (theme.value) {

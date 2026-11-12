@@ -87,6 +87,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get linkCopied => 'リンクをコピーしました';
 
   @override
+  String get copied => 'コピーしました';
+
+  @override
+  String get needPro => '発電後に使えます';
+
+  @override
+  String get exportNameTooLong => 'ファイル名またはパスが長すぎます。タイトルを短くしてから書き出します';
+
+  @override
+  String get multiSelect => '選択';
+
+  @override
+  String selectedCount(int count) {
+    return '$count 件選択';
+  }
+
+  @override
+  String downloadQueued(int added, int skipped) {
+    return '$added 件追加、$skipped 件はスキップ';
+  }
+
+  @override
+  String get subscriptionUpdates => '購読の更新';
+
+  @override
+  String get subscriptionUpdatesHint => '前回以降の新しい動画に印を付ける';
+
+  @override
   String get playing => '再生中';
 
   @override
@@ -450,6 +478,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sortOldest => '古い順';
 
   @override
+  String get userSortDefault => 'デフォルト';
+
+  @override
+  String get userSortLatest => '新しい順';
+
+  @override
+  String get userSortPopular => '人気順';
+
+  @override
+  String get userSortOldest => '古い順';
+
+  @override
   String get account => 'アカウント';
 
   @override
@@ -696,9 +736,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get about => 'このアプリについて';
 
   @override
-  String get originalProject => '元のプロジェクト';
-
-  @override
   String get discardChanges => '保存していない変更を破棄しますか？';
 
   @override
@@ -793,14 +830,178 @@ class AppLocalizationsJa extends AppLocalizations {
   String get regenerateIdentityHint => 'cf_clearance が削除され、再認証が必要になる場合があります';
 
   @override
-  String get userSortDefault => 'デフォルト';
+  String get proTitle => '発電';
 
   @override
-  String get userSortLatest => '最新';
+  String get proCenter => '発電センター';
 
   @override
-  String get userSortPopular => '人気';
+  String get proPowered => '発電中';
 
   @override
-  String get userSortOldest => '古い順';
+  String get proNotPowered => '未発電';
+
+  @override
+  String get proGuide =>
+      '発電状態はログイン後のユーザー名に紐づきます。\n\n「以前発電した」で既存の状態を同期します\n「今発電した」でコードを引き換えます\nPatreon は別の発電方法です\n「発電方法」を変えると接続失敗が解消することがあります';
+
+  @override
+  String get proSignIn => '交換';
+
+  @override
+  String get proPatreon => 'Patreon';
+
+  @override
+  String get proIHavePowered => '以前発電した';
+
+  @override
+  String get proIJustPowered => '今発電した';
+
+  @override
+  String get proEnterCode => 'コードを入力';
+
+  @override
+  String get proPowerMethod => '発電方法';
+
+  @override
+  String get proChooseMethod => '発電方法を選択';
+
+  @override
+  String get proClickPatToChange => '下の Patreon から変更してください';
+
+  @override
+  String get proUpdatePat => 'Patreon の状態を更新';
+
+  @override
+  String get proBindAccount => 'このアカウントに紐づける';
+
+  @override
+  String get proChangePatKey => 'Patreon キーを変更';
+
+  @override
+  String get proClearPat => 'Patreon 情報を削除';
+
+  @override
+  String get proClickToBind => 'タップして紐づけ';
+
+  @override
+  String get proEnterAuthCode => '認証コードを入力してください';
+
+  @override
+  String get proPleaseWait => 'お待ちください';
+
+  @override
+  String get proKeyRecorded => 'キーを保存しました';
+
+  @override
+  String get proPatAccount => 'Patreon アカウント';
+
+  @override
+  String get proBoundAccount => '紐づけアカウント';
+
+  @override
+  String get proBindTime => '紐づけ日時';
+
+  @override
+  String get proRebindTime => '再紐づけ可能日時';
+
+  @override
+  String get proPatBindHint => 'タップして現在のアカウントに紐づけてください';
+
+  @override
+  String get proPatRebindHint => '紐づけアカウントが現在のユーザー名と一致しません。付け替えてください';
+
+  @override
+  String get proPatNotDetected => '入会が検出されませんでした';
+
+  @override
+  String get proPatNormal => '正常';
+
+  @override
+  String get proSynced => '同期しました';
+
+  @override
+  String proPageLimit(int pages) {
+    return '未発電では先頭 $pages ページまでです';
+  }
+
+  @override
+  String get proGo => '発電する';
+
+  @override
+  String get proErrNetworkTimeout => 'タイムアウトしました。ネットワークを確認するか、発電方法を変えてください';
+
+  @override
+  String get proErrNetworkUnreachable =>
+      'サーバーに接続できません。ネットワークを確認するか、発電方法を変えてください';
+
+  @override
+  String get proErrServerFailed => 'サーバーで処理できませんでした';
+
+  @override
+  String get proErrServerInvalid => 'サーバーの応答が不正です';
+
+  @override
+  String get proErrRequestInvalid => 'リクエストが無効です';
+
+  @override
+  String get proErrOrderNotSynced => '注文がまだ同期されていません。しばらくしてから再試行してください';
+
+  @override
+  String get proErrOrderUsed => 'この注文は使用済みです';
+
+  @override
+  String get proErrOrderAmount => '注文金額が無効です';
+
+  @override
+  String get proErrTicketNotFound => '引き換え券が見つかりません';
+
+  @override
+  String get proErrTicketUsed => 'この引き換え券は使用済みです';
+
+  @override
+  String get proErrTicketEventUsed => 'このイベント券は使用済みです';
+
+  @override
+  String get proErrDeviceTime => '端末の時刻を確認してください';
+
+  @override
+  String get proErrPatNotBound => 'キーがまだ紐づいていません';
+
+  @override
+  String get browserAddressHint => 'アドレスを入力';
+
+  @override
+  String get browserBack => '戻る';
+
+  @override
+  String get browserForward => '進む';
+
+  @override
+  String get checkUpdate => '更新を確認';
+
+  @override
+  String get checkingUpdate => '更新を確認しています';
+
+  @override
+  String get alreadyLatest => '最新バージョンです';
+
+  @override
+  String newVersionFound(String version) {
+    return '新しいバージョン $version';
+  }
+
+  @override
+  String get updateTitle => '新しいバージョン';
+
+  @override
+  String forceUpdateMessage(String version) {
+    return '新しいバージョン $version があります。更新してから続けてください';
+  }
+
+  @override
+  String get downloadUpdate => 'ダウンロード';
+
+  @override
+  String get friendLinks => 'リンク';
 }
