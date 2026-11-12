@@ -30,10 +30,22 @@ class SubscriptionsPageState extends State<SubscriptionsPage> with RouteAware {
   final Set<String> _selected = {};
   Set<String> _newCodes = {};
 
-  void refresh() => _grid.currentState?.refresh();
+  void refresh() {
+    _exitSelect();
+    _grid.currentState?.refresh();
+  }
+
+  void _exitSelect() {
+    if (!_selecting && _selected.isEmpty) return;
+    setState(() {
+      _selecting = false;
+      _selected.clear();
+    });
+  }
 
   /// 离开订阅页时，把当前最前面的番号记成已查看。
   void markSeen() {
+    _exitSelect();
     if (!Prefs.subUpdates.value) {
       subscriptionNewCount.value = 0;
       return;
@@ -90,7 +102,7 @@ class SubscriptionsPageState extends State<SubscriptionsPage> with RouteAware {
 
   @override
   void didPopNext() {
-    if (Session.loggedIn) _grid.currentState?.refresh();
+    if (Session.loggedIn) refresh();
   }
 
   Future<PageResult> _loader(int page) async {
@@ -115,15 +127,7 @@ class SubscriptionsPageState extends State<SubscriptionsPage> with RouteAware {
         final showNew = Prefs.subUpdates.signal.value ? _newCodes : const <String>{};
         return Scaffold(
           appBar: AppBar(
-            leading: _selecting
-                ? IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => setState(() {
-                      _selecting = false;
-                      _selected.clear();
-                    }),
-                  )
-                : null,
+            leading: _selecting ? IconButton(icon: const Icon(Icons.close), onPressed: _exitSelect) : null,
             title: Text(_selecting ? l.selectedCount(_selected.length) : l.subscriptions),
             actions: [
               if (loggedIn && !_selecting)
@@ -136,10 +140,13 @@ class SubscriptionsPageState extends State<SubscriptionsPage> with RouteAware {
                 IconButton(
                   tooltip: l.multiSelect,
                   icon: const Icon(Icons.checklist),
-                  onPressed: () => setState(() {
-                    _selecting = !_selecting;
-                    if (!_selecting) _selected.clear();
-                  }),
+                  onPressed: () {
+                    if (_selecting) {
+                      _exitSelect();
+                    } else {
+                      setState(() => _selecting = true);
+                    }
+                  },
                 ),
             ],
           ),
