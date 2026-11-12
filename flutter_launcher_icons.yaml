@@ -1,0 +1,15 @@
+# Android 直接使用原项目的自适应图标（含伪装图标），这里只生成其它平台
+flutter_launcher_icons:
+  android: false
+  ios: true
+  image_path_ios: "icon/app_icon_ios.png"
+  remove_alpha_ios: true
+  background_color_ios: "#212121"
+  image_path: "icon/icon_han1me_viewer-rurires.png"
+  macos:
+    generate: true
+    image_path: "icon/app_icon_macos.png"
+  windows:
+    generate: true
+    image_path: "icon/app_icon_ios.png"
+    icon_size: 256

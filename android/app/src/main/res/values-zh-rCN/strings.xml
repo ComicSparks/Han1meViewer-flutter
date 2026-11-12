@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">HaVF</string>
+    <string name="app_name_fake_calc">计算器</string>
+    <string name="app_name_fake_xxt">学不通</string>
+    <string name="app_name_fake_cornhub" translatable="false">Cornhub</string>
+</resources>
