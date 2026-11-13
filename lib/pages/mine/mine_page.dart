@@ -11,6 +11,7 @@ import '../../widgets/net_image.dart';
 import '../downloads/downloads_page.dart';
 import '../login_page.dart';
 import '../pro/pro_page.dart';
+import '../settings/about_page.dart';
 import '../settings/settings_page.dart';
 import 'account_page.dart';
 import 'keyframes_page.dart';
@@ -42,15 +43,26 @@ class MinePage extends StatelessWidget {
               );
             },
           ),
+          SignalBuilder(
+            builder: (context) => IconButton(
+              tooltip: l.about,
+              icon: AppUpdate.showDot ? const Badge(child: Icon(Icons.info_outline)) : const Icon(Icons.info_outline),
+              onPressed: () => push(context, const AboutPage()),
+            ),
+          ),
+          IconButton(
+            tooltip: l.settings,
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => push(context, const SettingsPage()),
+          ),
         ],
       ),
       body: SignalBuilder(
         builder: (context) {
           final s = Session.state.value;
           final links = AppUpdate.links.value.entries.toList();
-          final updateDot = AppUpdate.showDot;
-          Widget tile(IconData icon, String title, Widget page, {bool needLogin = false, bool dot = false}) => ListTile(
-                leading: dot ? Badge(child: Icon(icon)) : Icon(icon),
+          Widget tile(IconData icon, String title, Widget page, {bool needLogin = false}) => ListTile(
+                leading: Icon(icon),
                 title: Text(title),
                 trailing: const Icon(Icons.chevron_right),
                 enabled: !needLogin || s.loggedIn,
@@ -94,7 +106,6 @@ class MinePage extends StatelessWidget {
               tile(Icons.download_outlined, l.downloads, const DownloadsPage()),
               const Divider(),
               tile(Icons.bookmarks_outlined, l.hKeyframes, const KeyframesPage()),
-              tile(Icons.settings_outlined, l.settings, const SettingsPage(), dot: updateDot),
               if (s.loggedIn)
                 ListTile(
                   leading: const Icon(Icons.logout),
