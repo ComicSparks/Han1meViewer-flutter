@@ -2027,6 +2027,24 @@ abstract class AppLocalizations {
   /// **'去下载'**
   String get downloadUpdate;
 
+  /// No description provided for @updateLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'以后再说'**
+  String get updateLater;
+
+  /// No description provided for @updateRemind.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新提醒'**
+  String get updateRemind;
+
+  /// No description provided for @updateRemindHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现新版本时显示红点和提示'**
+  String get updateRemindHint;
+
   /// No description provided for @friendLinks.
   ///
   /// In zh, this message translates to:

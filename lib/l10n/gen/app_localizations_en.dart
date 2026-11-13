@@ -1023,5 +1023,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get downloadUpdate => 'Download';
 
   @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateRemind => 'Update alerts';
+
+  @override
+  String get updateRemindHint => 'Show a dot and a prompt for a new version';
+
+  @override
   String get friendLinks => 'Links';
 }

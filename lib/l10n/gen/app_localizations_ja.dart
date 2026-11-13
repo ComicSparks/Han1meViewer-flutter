@@ -1003,5 +1003,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get downloadUpdate => 'ダウンロード';
 
   @override
+  String get updateLater => '後で';
+
+  @override
+  String get updateRemind => '更新のお知らせ';
+
+  @override
+  String get updateRemindHint => '新しいバージョンがあるときに印と案内を表示します';
+
+  @override
   String get friendLinks => 'リンク';
 }

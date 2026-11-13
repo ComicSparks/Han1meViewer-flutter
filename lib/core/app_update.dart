@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/gen/app_localizations.dart';
 import '../src/rust/api/cfg.dart' as cfg;
+import 'prefs.dart';
+import 'pro.dart';
 
 /// 版本和友情链接都来自 CDN 配置。没有更新时不保留、也不打开下载地址。
 class AppUpdate {
@@ -19,6 +21,10 @@ class AppUpdate {
   static Future<void>? _loading;
   static bool _loaded = false;
   static bool _forceShown = false;
+  static bool _optionalShown = false;
+
+  /// 未发电时提醒始终开启。发电用户可以关掉可选更新的红点和弹窗。
+  static bool get shouldRemind => !Pro.isPro || Prefs.updateRemind.value;
 
   static Future<void> refresh() {
     if (_loaded) return Future.value();
@@ -48,12 +54,28 @@ class AppUpdate {
     return version != null && _isForce(current, version);
   }
 
-  static Future<void> maybeForce(BuildContext context) async {
+  static bool get hasUpdate => latest.value != null;
+
+  static bool get showDot => hasUpdate && shouldRemind;
+
+  /// 启动后调用。强制更新不能关掉；可选更新在提醒开启时弹一次。
+  static Future<void> present(BuildContext context, {bool manual = false}) async {
     final version = latest.value;
-    if (_forceShown || version == null || !_isForce(current, version)) return;
-    _forceShown = true;
+    if (version == null) return;
+    if (_isForce(current, version)) {
+      if (!manual && _forceShown) return;
+      _forceShown = true;
+      await _forceDialog(context, version);
+      return;
+    }
+    if (!manual && (!shouldRemind || _optionalShown)) return;
+    _optionalShown = true;
+    await _optionalDialog(context, version);
+  }
+
+  static Future<void> _forceDialog(BuildContext context, String version) {
     final l = AppLocalizations.of(context);
-    await showDialog<void>(
+    return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (c) => PopScope(
@@ -65,6 +87,28 @@ class AppUpdate {
             FilledButton(onPressed: openDownload, child: Text(l.downloadUpdate)),
           ],
         ),
+      ),
+    );
+  }
+
+  static Future<void> _optionalDialog(BuildContext context, String version) {
+    final l = AppLocalizations.of(context);
+    final log = changeLog.value.trim();
+    return showDialog<void>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(l.updateTitle),
+        content: Text(log.isEmpty ? l.newVersionFound(version) : log),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c), child: Text(l.updateLater)),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(c);
+              openDownload();
+            },
+            child: Text(l.downloadUpdate),
+          ),
+        ],
       ),
     );
   }

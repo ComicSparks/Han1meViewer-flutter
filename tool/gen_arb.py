@@ -346,6 +346,9 @@ S = {
   "新しいバージョン {version} があります。更新してから続けてください",
  ),
  "downloadUpdate": ("去下载","去下載","Download","ダウンロード"),
+ "updateLater": ("以后再说","以後再說","Later","後で"),
+ "updateRemind": ("更新提醒","更新提醒","Update alerts","更新のお知らせ"),
+ "updateRemindHint": ("发现新版本时显示红点和提示","發現新版本時顯示紅點和提示","Show a dot and a prompt for a new version","新しいバージョンがあるときに印と案内を表示します"),
  "friendLinks": ("友情链接","友情連結","Links","リンク"),
 }
 

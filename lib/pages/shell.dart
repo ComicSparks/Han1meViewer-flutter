@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import '../core/app_update.dart';
 import '../core/downloads.dart';
 import '../core/sub_updates.dart';
 import '../l10n/gen/app_localizations.dart';
@@ -64,10 +65,14 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
     return SignalBuilder(builder: (context) {
     final newCount = subscriptionNewCount.value;
-    Widget navIcon(IconData icon, {required bool badge}) {
-      if (!badge || newCount <= 0) return Icon(icon);
-      final text = newCount > 99 ? '99+' : '$newCount';
-      return Badge(label: Text(text), child: Icon(icon));
+    final updateDot = AppUpdate.showDot;
+    Widget navIcon(IconData icon, {required bool subs, required bool mine}) {
+      if (subs && newCount > 0) {
+        final text = newCount > 99 ? '99+' : '$newCount';
+        return Badge(label: Text(text), child: Icon(icon));
+      }
+      if (mine && updateDot) return Badge(child: Icon(icon));
+      return Icon(icon);
     }
 
     final dests = [
@@ -86,8 +91,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           destinations: [
             for (final d in dests)
               NavigationDestination(
-                icon: navIcon(d.$1, badge: d.$4),
-                selectedIcon: navIcon(d.$2, badge: d.$4),
+                icon: navIcon(d.$1, subs: d.$4, mine: d.$3 == l.mine),
+                selectedIcon: navIcon(d.$2, subs: d.$4, mine: d.$3 == l.mine),
                 label: d.$3,
               ),
           ],
@@ -114,8 +119,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               destinations: [
                 for (final d in dests)
                   NavigationRailDestination(
-                    icon: navIcon(d.$1, badge: d.$4),
-                    selectedIcon: navIcon(d.$2, badge: d.$4),
+                    icon: navIcon(d.$1, subs: d.$4, mine: d.$3 == l.mine),
+                    selectedIcon: navIcon(d.$2, subs: d.$4, mine: d.$3 == l.mine),
                     label: Text(d.$3),
                   ),
               ],

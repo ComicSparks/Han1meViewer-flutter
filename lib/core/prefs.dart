@@ -66,6 +66,7 @@ class Prefs {
   static late final Pref<bool> blurInBackground;
   static late final Pref<String> disguiseIcon;
   static late final Pref<bool> browserPassed;
+  static late final Pref<bool> updateRemind;
 
   static void load() {
     theme = Pref('theme', 'system');
@@ -95,6 +96,7 @@ class Prefs {
     blurInBackground = Pref('blur_background', true);
     disguiseIcon = Pref('disguise_icon', 'default');
     browserPassed = Pref('browser_passed', false);
+    updateRemind = Pref('update_remind', true);
   }
 
   static ThemeMode get themeMode => switch (theme.value) {

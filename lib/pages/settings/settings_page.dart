@@ -383,14 +383,34 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: Text(_version),
             ),
             ListTile(
-              leading: const Icon(Icons.system_update_alt),
+              leading: AppUpdate.showDot ? const Badge(child: Icon(Icons.system_update_alt)) : const Icon(Icons.system_update_alt),
               title: Text(l.checkUpdate),
               onTap: () async {
                 toast(context, l.checkingUpdate);
                 await AppUpdate.refresh();
                 if (!context.mounted) return;
-                final found = AppUpdate.latest.value;
-                toast(context, found == null ? l.alreadyLatest : l.newVersionFound(found));
+                if (AppUpdate.latest.value == null) {
+                  toast(context, l.alreadyLatest);
+                  return;
+                }
+                await AppUpdate.present(context, manual: true);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.notifications_outlined, color: Pro.isPro ? null : Theme.of(context).disabledColor),
+              title: Text(l.updateRemind, style: TextStyle(color: Pro.isPro ? null : Theme.of(context).disabledColor)),
+              subtitle: Text(l.updateRemindHint),
+              trailing: Switch(
+                value: Pro.isPro ? Prefs.updateRemind.signal.value : true,
+                onChanged: Pro.isPro ? (v) => Prefs.updateRemind.value = v : null,
+              ),
+              onTap: () {
+                if (!Pro.isPro) {
+                  toast(context, l.needPro);
+                  push(context, const ProPage());
+                  return;
+                }
+                Prefs.updateRemind.value = !Prefs.updateRemind.value;
               },
             ),
             if (AppUpdate.latest.value != null)
@@ -404,15 +424,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 onTap: AppUpdate.openDownload,
               ),
-            if (AppUpdate.links.value.isNotEmpty) ...[
-              _header(l.friendLinks),
-              for (final entry in AppUpdate.links.value.entries)
-                ListTile(
-                  leading: const Icon(Icons.link),
-                  title: Text(entry.key),
-                  onTap: () => AppUpdate.openHttp(entry.value),
-                ),
-            ],
           ],
         ),
       ),

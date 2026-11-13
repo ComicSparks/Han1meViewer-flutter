@@ -321,5 +321,8 @@
   "updateTitle": "新しいバージョン",
   "forceUpdateMessage": "新しいバージョン {version} があります。更新してから続けてください",
   "downloadUpdate": "ダウンロード",
+  "updateLater": "後で",
+  "updateRemind": "更新のお知らせ",
+  "updateRemindHint": "新しいバージョンがあるときに印と案内を表示します",
   "friendLinks": "リンク"
 }

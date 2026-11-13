@@ -14,6 +14,7 @@ import 'core/downloads.dart';
 import 'core/metrics.dart';
 import 'core/nav.dart';
 import 'core/prefs.dart';
+import 'core/pro.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'pages/lock/lock_screen.dart';
 import 'pages/lock/unlock_browser_page.dart';
@@ -126,10 +127,11 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
   }
 
   Future<void> _checkUpdate() async {
+    Pro.refresh();
     await AppUpdate.refresh();
     if (!mounted || _locked) return;
     final ctx = navigatorKey.currentContext;
-    if (ctx != null && ctx.mounted) await AppUpdate.maybeForce(ctx);
+    if (ctx != null && ctx.mounted) await AppUpdate.present(ctx);
   }
 
   void _onBrowserUnlocked() {

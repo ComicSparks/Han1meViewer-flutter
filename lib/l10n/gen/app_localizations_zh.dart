@@ -1002,6 +1002,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get downloadUpdate => '去下载';
 
   @override
+  String get updateLater => '以后再说';
+
+  @override
+  String get updateRemind => '更新提醒';
+
+  @override
+  String get updateRemindHint => '发现新版本时显示红点和提示';
+
+  @override
   String get friendLinks => '友情链接';
 }
 
@@ -2001,6 +2010,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get downloadUpdate => '去下載';
+
+  @override
+  String get updateLater => '以後再說';
+
+  @override
+  String get updateRemind => '更新提醒';
+
+  @override
+  String get updateRemindHint => '發現新版本時顯示紅點和提示';
 
   @override
   String get friendLinks => '友情連結';

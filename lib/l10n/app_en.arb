@@ -321,5 +321,8 @@
   "updateTitle": "New version",
   "forceUpdateMessage": "Version {version} is required before you can continue",
   "downloadUpdate": "Download",
+  "updateLater": "Later",
+  "updateRemind": "Update alerts",
+  "updateRemindHint": "Show a dot and a prompt for a new version",
   "friendLinks": "Links"
 }

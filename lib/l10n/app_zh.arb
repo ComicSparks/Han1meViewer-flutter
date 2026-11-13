@@ -428,5 +428,8 @@
     }
   },
   "downloadUpdate": "去下载",
+  "updateLater": "以后再说",
+  "updateRemind": "更新提醒",
+  "updateRemindHint": "发现新版本时显示红点和提示",
   "friendLinks": "友情链接"
 }

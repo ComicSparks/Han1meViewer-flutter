@@ -321,5 +321,8 @@
   "updateTitle": "發現新版本",
   "forceUpdateMessage": "發現新版本 {version}，請立即更新後繼續使用",
   "downloadUpdate": "去下載",
+  "updateLater": "以後再說",
+  "updateRemind": "更新提醒",
+  "updateRemindHint": "發現新版本時顯示紅點和提示",
   "friendLinks": "友情連結"
 }

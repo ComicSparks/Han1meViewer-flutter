@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
+import '../../core/app_update.dart';
 import '../../core/nav.dart';
 import '../../core/pro.dart';
 import '../../core/session.dart';
@@ -46,8 +47,10 @@ class MinePage extends StatelessWidget {
       body: SignalBuilder(
         builder: (context) {
           final s = Session.state.value;
-          Widget tile(IconData icon, String title, Widget page, {bool needLogin = false}) => ListTile(
-                leading: Icon(icon),
+          final links = AppUpdate.links.value.entries.toList();
+          final updateDot = AppUpdate.showDot;
+          Widget tile(IconData icon, String title, Widget page, {bool needLogin = false, bool dot = false}) => ListTile(
+                leading: dot ? Badge(child: Icon(icon)) : Icon(icon),
                 title: Text(title),
                 trailing: const Icon(Icons.chevron_right),
                 enabled: !needLogin || s.loggedIn,
@@ -55,6 +58,15 @@ class MinePage extends StatelessWidget {
               );
           return ListView(
             children: [
+              if (links.isNotEmpty) ...[
+                for (final entry in links)
+                  ListTile(
+                    leading: const Icon(Icons.link),
+                    title: Text(entry.key),
+                    onTap: () => AppUpdate.openHttp(entry.value),
+                  ),
+                const Divider(),
+              ],
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Card(
@@ -82,7 +94,7 @@ class MinePage extends StatelessWidget {
               tile(Icons.download_outlined, l.downloads, const DownloadsPage()),
               const Divider(),
               tile(Icons.bookmarks_outlined, l.hKeyframes, const KeyframesPage()),
-              tile(Icons.settings_outlined, l.settings, const SettingsPage()),
+              tile(Icons.settings_outlined, l.settings, const SettingsPage(), dot: updateDot),
               if (s.loggedIn)
                 ListTile(
                   leading: const Icon(Icons.logout),
