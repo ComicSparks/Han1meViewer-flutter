@@ -1032,5 +1032,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateRemindHint => 'Show a dot and a prompt for a new version';
 
   @override
+  String get exportLog => 'Export logs';
+
+  @override
+  String get exportLogHint =>
+      'Dart errors only. Native player crashes are not in this file: use adb logcat on Android and the Xcode console on iOS';
+
+  @override
+  String get exportLogEmpty => 'No logs yet';
+
+  @override
   String get friendLinks => 'Links';
 }

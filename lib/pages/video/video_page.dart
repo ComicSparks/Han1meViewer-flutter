@@ -60,12 +60,21 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
   bool? _subscribed;
 
   String get _title => _video?.title ?? widget.localTitle ?? widget.videoCode;
+  int? _commentTotal;
+
+  String _commentTitle(AppLocalizations l) => _commentTotal == null ? l.comments : '${l.comments} $_commentTotal';
+
+  void _onCommentTotal(int? total) {
+    if (!mounted || total == _commentTotal) return;
+    setState(() => _commentTotal = total);
+  }
 
   @override
   void initState() {
     super.initState();
     WakelockPlus.enable().catchError((_) {});
     _player.resumeHook = _resumeIfNeeded;
+    _player.shouldPlay = () => mounted && !_covered && !_suspendAutoplay;
     _player.value.addListener(_onPlayback);
     _init();
     _progressTimer = Timer.periodic(const Duration(seconds: 10), (_) => _saveProgress());
@@ -185,7 +194,8 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
 
   void _saveProgress() {
     final v = _player.value.value;
-    if (!v.initialized || v.duration == Duration.zero) return;
+    if (v.duration == Duration.zero) return;
+    if (!v.initialized && v.position == Duration.zero) return;
     local
         .historyUpdateProgress(
           videoCode: widget.videoCode,
@@ -210,6 +220,7 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
   void didPushNext() {
     _suspendAutoplay = true;
     _covered = true;
+    _player.cancelPendingOpen();
     _saveProgress();
     _player.pause();
     WakelockPlus.disable().catchError((_) {});
@@ -223,6 +234,8 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
 
   @override
   void dispose() {
+    _covered = true;
+    _player.cancelPendingOpen();
     routeObserver.unsubscribe(this);
     _player.value.removeListener(_onPlayback);
     _progressTimer?.cancel();
@@ -566,8 +579,8 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
                 child: SafeArea(
                   child: Column(
                     children: [
-                      ListTile(title: Text(l.comments)),
-                      Expanded(child: CommentsView(videoCode: widget.videoCode)),
+                      ListTile(title: Text(_commentTitle(l))),
+                      Expanded(child: CommentsView(videoCode: widget.videoCode, onTotal: _onCommentTotal)),
                     ],
                   ),
                 ),
@@ -583,12 +596,12 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
         child: Column(
           children: [
             player,
-            TabBar(tabs: [Tab(text: l.intro), if (showComments) Tab(text: l.comments)]),
+            TabBar(tabs: [Tab(text: l.intro), if (showComments) Tab(text: _commentTitle(l))]),
             Expanded(
               child: TabBarView(
                 children: [
                   intro,
-                  if (showComments) CommentsView(videoCode: widget.videoCode),
+                  if (showComments) CommentsView(videoCode: widget.videoCode, onTotal: _onCommentTotal),
                 ],
               ),
             ),

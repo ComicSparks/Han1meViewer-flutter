@@ -7,6 +7,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import 'playback_cache.dart';
+import 'playlist_duration.dart';
 
 @immutable
 class PlayerValue {
@@ -80,9 +81,63 @@ abstract class HPlayer {
   /// 还没 open 过时，由详情页补上地址再打开。
   Future<void> Function()? resumeHook;
 
+  /// 页面还在前台才自动开播。用户点播放时走 [open] 的 forcePlay。
+  bool Function()? shouldPlay;
+
+  int _openGen = 0;
+  int _playlistTicket = 0;
+  Timer? _durationPoll;
+  Duration _reported = Duration.zero;
+  Duration? _playlistDuration;
+
   bool get hasSource;
 
-  Future<void> open(String source, {Map<String, String>? headers, bool isFile = false, Duration? start});
+  void cancelPendingOpen() => _openGen++;
+
+  int _claimOpen() => ++_openGen;
+
+  bool _sameOpen(int gen) => gen == _openGen;
+
+  void _resetClock() {
+    _reported = Duration.zero;
+    _playlistDuration = null;
+    _durationPoll?.cancel();
+    _playlistTicket++;
+  }
+
+  Duration _durationOf(Duration reported) {
+    if (reported > Duration.zero) {
+      _reported = reported;
+      _durationPoll?.cancel();
+      return reported;
+    }
+    if (_reported > Duration.zero) return _reported;
+    return _playlistDuration ?? Duration.zero;
+  }
+
+  void _listenForDuration(bool Function() alive, void Function() tick) {
+    _durationPoll?.cancel();
+    var n = 0;
+    _durationPoll = Timer.periodic(const Duration(milliseconds: 400), (t) {
+      if (!alive() || ++n > 40 || _reported > Duration.zero) {
+        t.cancel();
+        return;
+      }
+      tick();
+    });
+  }
+
+  void _loadPlaylistDuration(String source, Map<String, String>? headers, bool isFile, void Function() onReady) {
+    if (isFile || !source.toLowerCase().contains('.m3u8')) return;
+    final ticket = _playlistTicket;
+    playlistDuration(source, headers).then((d) {
+      if (ticket != _playlistTicket || d == null || d <= Duration.zero) return;
+      _playlistDuration = d;
+      if (_reported <= Duration.zero) onReady();
+    });
+  }
+
+  Future<void> open(String source, {Map<String, String>? headers, bool isFile = false, Duration? start, bool forcePlay = false});
   Future<void> play();
   Future<void> pause();
   Future<void> seek(Duration to);
@@ -114,7 +169,10 @@ class _BetterHPlayer extends HPlayer {
   bool get hasSource => _lastSource != null;
 
   @override
-  Future<void> open(String source, {Map<String, String>? headers, bool isFile = false, Duration? start}) async {
+  Future<void> open(String source, {Map<String, String>? headers, bool isFile = false, Duration? start, bool forcePlay = false}) async {
+    final gen = _claimOpen();
+    _resetClock();
+    _loadPlaylistDuration(source, headers, isFile, _sync);
     _lastSource = source;
     _lastHeaders = headers;
     _lastIsFile = isFile;
@@ -125,10 +183,11 @@ class _BetterHPlayer extends HPlayer {
       PlaybackCache.retainNetwork();
     }
     await _release();
+    if (!_sameOpen(gen) || _disposed) return;
     value.value = PlayerValue(buffering: true, position: start ?? Duration.zero);
     final c = BetterPlayerController(
       BetterPlayerConfiguration(
-        autoPlay: true,
+        autoPlay: false,
         startAt: start,
         fit: BoxFit.contain,
         expandToFill: true,
@@ -152,10 +211,21 @@ class _BetterHPlayer extends HPlayer {
           );
     try {
       await c.setupDataSource(ds);
-      c.videoPlayerController?.addListener(_sync);
-      _sync();
     } catch (e) {
+      if (!_sameOpen(gen) || _disposed) return;
       value.value = value.value.copyWith(error: e.toString(), buffering: false);
+      return;
+    }
+    if (_disposed || _c != c) return;
+    c.videoPlayerController?.addListener(_sync);
+    _sync();
+    _listenForDuration(() => !_disposed && _c == c, _sync);
+    if (!_sameOpen(gen) || _sessionClosed) return;
+    final wantPlay = forcePlay || (shouldPlay?.call() ?? false);
+    if (!wantPlay) return;
+    await c.play();
+    if (!_sameOpen(gen) || _disposed || (!forcePlay && shouldPlay?.call() == false)) {
+      await c.pause();
     }
   }
 
@@ -179,7 +249,7 @@ class _BetterHPlayer extends HPlayer {
     final buffered = v.buffered.isEmpty ? Duration.zero : v.buffered.last.end;
     value.value = value.value.copyWith(
       position: v.position,
-      duration: v.duration ?? Duration.zero,
+      duration: _durationOf(v.duration ?? Duration.zero),
       buffered: buffered,
       playing: _finished ? false : v.isPlaying,
       buffering: _finished ? false : v.isBuffering,
@@ -196,7 +266,7 @@ class _BetterHPlayer extends HPlayer {
     if (_sessionClosed || _c == null) {
       if (_lastSource != null) {
         final start = value.value.completed ? Duration.zero : value.value.position;
-        await open(_lastSource!, headers: _lastHeaders, isFile: _lastIsFile, start: start);
+        await open(_lastSource!, headers: _lastHeaders, isFile: _lastIsFile, start: start, forcePlay: true);
       } else {
         await resumeHook?.call();
       }
@@ -209,6 +279,7 @@ class _BetterHPlayer extends HPlayer {
 
   @override
   Future<void> closeSession() async {
+    cancelPendingOpen();
     if (_sessionClosed && _c == null) return;
     final snap = value.value;
     _sessionClosed = true;
@@ -245,9 +316,11 @@ class _BetterHPlayer extends HPlayer {
         builder: (context, _, _) {
           final c = _c;
           if (c == null) return const ColoredBox(color: Colors.black);
+          // iOS 的 Platform View 会吃掉单击。画面不参与命中后，外层单击才能显隐控制条。
+          final player = BetterPlayer(key: ValueKey(c), controller: c);
           return ColoredBox(
             color: Colors.black,
-            child: Center(child: BetterPlayer(key: ValueKey(c), controller: c)),
+            child: Center(child: Platform.isIOS ? IgnorePointer(child: player) : player),
           );
         },
       );
@@ -256,9 +329,11 @@ class _BetterHPlayer extends HPlayer {
     final c = _c;
     _c = null;
     if (c == null) return;
+    _durationPoll?.cancel();
     c.videoPlayerController?.removeListener(_sync);
     c.removeEventsListener(_onEvent);
     _version.value++;
+    await WidgetsBinding.instance.endOfFrame;
     try {
       c.dispose(forceDispose: true);
     } catch (_) {}
@@ -266,6 +341,7 @@ class _BetterHPlayer extends HPlayer {
 
   @override
   Future<void> dispose() async {
+    cancelPendingOpen();
     _disposed = true;
     await _release();
     if (_retained) {
@@ -280,7 +356,10 @@ class _MediaKitHPlayer extends HPlayer {
     final s = _p.stream;
     _subs.addAll([
       s.position.listen((d) => _set(value.value.copyWith(position: d))),
-      s.duration.listen((d) => _set(value.value.copyWith(duration: d, initialized: d > Duration.zero))),
+      s.duration.listen((d) {
+        final dur = _durationOf(d);
+        _set(value.value.copyWith(duration: dur, initialized: dur > Duration.zero || value.value.initialized));
+      }),
       s.buffer.listen((d) => _set(value.value.copyWith(buffered: d))),
       s.playing.listen((p) {
         _set(value.value.copyWith(playing: _finished ? false : p, completed: _finished ? true : (p ? false : null)));
@@ -345,16 +424,34 @@ class _MediaKitHPlayer extends HPlayer {
   }
 
   @override
-  Future<void> open(String source, {Map<String, String>? headers, bool isFile = false, Duration? start}) async {
+  Future<void> open(String source, {Map<String, String>? headers, bool isFile = false, Duration? start, bool forcePlay = false}) async {
+    final gen = _claimOpen();
+    _resetClock();
+    _loadPlaylistDuration(source, headers, isFile, () {
+      final dur = _durationOf(Duration.zero);
+      if (dur > Duration.zero) _set(value.value.copyWith(duration: dur, initialized: true));
+    });
     _lastSource = source;
     _lastHeaders = headers;
     _lastIsFile = isFile;
     _finished = false;
     await _p.stop();
+    if (!_sameOpen(gen) || _disposed) return;
     await _armCache();
+    if (!_sameOpen(gen) || _disposed) return;
     _sessionClosed = false;
     value.value = PlayerValue(buffering: true, position: start ?? Duration.zero);
-    await _p.open(Media(source, httpHeaders: headers, start: start), play: true);
+    await _p.open(Media(source, httpHeaders: headers, start: start), play: false);
+    if (_disposed || _sessionClosed) return;
+    final fallback = _durationOf(Duration.zero);
+    if (fallback > Duration.zero) _set(value.value.copyWith(duration: fallback, initialized: true));
+    if (!_sameOpen(gen)) return;
+    final wantPlay = forcePlay || (shouldPlay?.call() ?? false);
+    if (!wantPlay) return;
+    await _p.play();
+    if (!_sameOpen(gen) || _disposed || (!forcePlay && shouldPlay?.call() == false)) {
+      await _p.pause();
+    }
   }
 
   @override
@@ -362,7 +459,7 @@ class _MediaKitHPlayer extends HPlayer {
     if (_sessionClosed) {
       if (_lastSource != null) {
         final start = value.value.completed ? Duration.zero : value.value.position;
-        await open(_lastSource!, headers: _lastHeaders, isFile: _lastIsFile, start: start);
+        await open(_lastSource!, headers: _lastHeaders, isFile: _lastIsFile, start: start, forcePlay: true);
       } else {
         await resumeHook?.call();
       }
@@ -375,6 +472,7 @@ class _MediaKitHPlayer extends HPlayer {
 
   @override
   Future<void> closeSession() async {
+    cancelPendingOpen();
     if (_sessionClosed) return;
     final snap = value.value;
     _sessionClosed = true;
@@ -411,6 +509,8 @@ class _MediaKitHPlayer extends HPlayer {
 
   @override
   Future<void> dispose() async {
+    cancelPendingOpen();
+    _durationPoll?.cancel();
     _disposed = true;
     _sessionClosed = true;
     for (final s in _subs) {

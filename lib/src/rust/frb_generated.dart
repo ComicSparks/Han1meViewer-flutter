@@ -5408,12 +5408,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   VideoComments dco_decode_video_comments(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return VideoComments(
       comments: dco_decode_list_video_comment(arr[0]),
       currentUserId: dco_decode_opt_String(arr[1]),
       csrfToken: dco_decode_opt_String(arr[2]),
+      total: dco_decode_opt_box_autoadd_i_32(arr[3]),
     );
   }
 
@@ -6546,10 +6547,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_comments = sse_decode_list_video_comment(deserializer);
     var var_currentUserId = sse_decode_opt_String(deserializer);
     var var_csrfToken = sse_decode_opt_String(deserializer);
+    var var_total = sse_decode_opt_box_autoadd_i_32(deserializer);
     return VideoComments(
       comments: var_comments,
       currentUserId: var_currentUserId,
       csrfToken: var_csrfToken,
+      total: var_total,
     );
   }
 
@@ -7475,6 +7478,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_video_comment(self.comments, serializer);
     sse_encode_opt_String(self.currentUserId, serializer);
     sse_encode_opt_String(self.csrfToken, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.total, serializer);
   }
 
   @protected

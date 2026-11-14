@@ -1011,6 +1011,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get updateRemindHint => '发现新版本时显示红点和提示';
 
   @override
+  String get exportLog => '导出日志';
+
+  @override
+  String get exportLogHint =>
+      '只包含 Dart 错误。播放器原生崩溃不在这个文件里，安卓用 adb logcat，iOS 用 Xcode 控制台';
+
+  @override
+  String get exportLogEmpty => '还没有日志';
+
+  @override
   String get friendLinks => '友情链接';
 }
 
@@ -2019,6 +2029,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get updateRemindHint => '發現新版本時顯示紅點和提示';
+
+  @override
+  String get exportLog => '匯出日誌';
+
+  @override
+  String get exportLogHint =>
+      '只包含 Dart 錯誤。播放器原生崩潰不在這個檔案裡，Android 用 adb logcat，iOS 用 Xcode 主控台';
+
+  @override
+  String get exportLogEmpty => '還沒有日誌';
 
   @override
   String get friendLinks => '友情連結';

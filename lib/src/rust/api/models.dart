@@ -1210,11 +1210,13 @@ class VideoComments {
   final List<VideoComment> comments;
   final String? currentUserId;
   final String? csrfToken;
+  final int? total;
 
   const VideoComments({
     required this.comments,
     this.currentUserId,
     this.csrfToken,
+    this.total,
   });
 
   static Future<VideoComments> default_() =>
@@ -1222,7 +1224,10 @@ class VideoComments {
 
   @override
   int get hashCode =>
-      comments.hashCode ^ currentUserId.hashCode ^ csrfToken.hashCode;
+      comments.hashCode ^
+      currentUserId.hashCode ^
+      csrfToken.hashCode ^
+      total.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -1231,7 +1236,8 @@ class VideoComments {
           runtimeType == other.runtimeType &&
           comments == other.comments &&
           currentUserId == other.currentUserId &&
-          csrfToken == other.csrfToken;
+          csrfToken == other.csrfToken &&
+          total == other.total;
 }
 
 class VideoLink {

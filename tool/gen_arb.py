@@ -349,6 +349,9 @@ S = {
  "updateLater": ("以后再说","以後再說","Later","後で"),
  "updateRemind": ("更新提醒","更新提醒","Update alerts","更新のお知らせ"),
  "updateRemindHint": ("发现新版本时显示红点和提示","發現新版本時顯示紅點和提示","Show a dot and a prompt for a new version","新しいバージョンがあるときに印と案内を表示します"),
+ "exportLog": ("导出日志","匯出日誌","Export logs","ログを書き出す"),
+ "exportLogHint": ("只包含 Dart 错误。播放器原生崩溃不在这个文件里，安卓用 adb logcat，iOS 用 Xcode 控制台","只包含 Dart 錯誤。播放器原生崩潰不在這個檔案裡，Android 用 adb logcat，iOS 用 Xcode 主控台","Dart errors only. Native player crashes are not in this file: use adb logcat on Android and the Xcode console on iOS","Dart のエラーだけです。プレーヤーのネイティブクラッシュはこのファイルに入りません。Android は adb logcat、iOS は Xcode のコンソールを使ってください"),
+ "exportLogEmpty": ("还没有日志","還沒有日誌","No logs yet","ログはまだありません"),
  "friendLinks": ("友情链接","友情連結","Links","リンク"),
 }
 

@@ -324,5 +324,8 @@
   "updateLater": "後で",
   "updateRemind": "更新のお知らせ",
   "updateRemindHint": "新しいバージョンがあるときに印と案内を表示します",
+  "exportLog": "ログを書き出す",
+  "exportLogHint": "Dart のエラーだけです。プレーヤーのネイティブクラッシュはこのファイルに入りません。Android は adb logcat、iOS は Xcode のコンソールを使ってください",
+  "exportLogEmpty": "ログはまだありません",
   "friendLinks": "リンク"
 }

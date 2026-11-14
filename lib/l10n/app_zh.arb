@@ -431,5 +431,8 @@
   "updateLater": "以后再说",
   "updateRemind": "更新提醒",
   "updateRemindHint": "发现新版本时显示红点和提示",
+  "exportLog": "导出日志",
+  "exportLogHint": "只包含 Dart 错误。播放器原生崩溃不在这个文件里，安卓用 adb logcat，iOS 用 Xcode 控制台",
+  "exportLogEmpty": "还没有日志",
   "friendLinks": "友情链接"
 }

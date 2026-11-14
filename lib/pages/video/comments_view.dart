@@ -12,7 +12,8 @@ import '../../widgets/net_image.dart';
 
 class CommentsView extends StatefulWidget {
   final String videoCode;
-  const CommentsView({super.key, required this.videoCode});
+  final ValueChanged<int?>? onTotal;
+  const CommentsView({super.key, required this.videoCode, this.onTotal});
 
   @override
   State<CommentsView> createState() => _CommentsViewState();
@@ -47,7 +48,10 @@ class _CommentsViewState extends State<CommentsView> with AutomaticKeepAliveClie
     });
     try {
       final d = await hanime.comments(kind: 'video', code: widget.videoCode);
-      if (mounted) setState(() => _data = d);
+      if (mounted) {
+        setState(() => _data = d);
+        widget.onTotal?.call(d.total);
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e);
     } finally {

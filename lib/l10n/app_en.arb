@@ -324,5 +324,8 @@
   "updateLater": "Later",
   "updateRemind": "Update alerts",
   "updateRemindHint": "Show a dot and a prompt for a new version",
+  "exportLog": "Export logs",
+  "exportLogHint": "Dart errors only. Native player crashes are not in this file: use adb logcat on Android and the Xcode console on iOS",
+  "exportLogEmpty": "No logs yet",
   "friendLinks": "Links"
 }

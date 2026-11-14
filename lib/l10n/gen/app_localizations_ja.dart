@@ -1012,5 +1012,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get updateRemindHint => '新しいバージョンがあるときに印と案内を表示します';
 
   @override
+  String get exportLog => 'ログを書き出す';
+
+  @override
+  String get exportLogHint =>
+      'Dart のエラーだけです。プレーヤーのネイティブクラッシュはこのファイルに入りません。Android は adb logcat、iOS は Xcode のコンソールを使ってください';
+
+  @override
+  String get exportLogEmpty => 'ログはまだありません';
+
+  @override
   String get friendLinks => 'リンク';
 }

@@ -7,6 +7,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
+import 'core/crash_log.dart';
 import 'core/downloads.dart';
 import 'core/native.dart';
 import 'core/prefs.dart';
@@ -17,6 +18,7 @@ import 'webview/web_auth.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  CrashLog.install();
   if (Platform.isAndroid || Platform.isIOS) {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
@@ -26,6 +28,7 @@ Future<void> main(List<String> args) async {
   if (!(Platform.isAndroid || Platform.isIOS)) MediaKit.ensureInitialized();
 
   final root = await getApplicationSupportDirectory();
+  await CrashLog.open();
   await rapi.init(root: root.path);
   await Native.excludeFromBackup(root.path);
   await PlaybackCache.clearAll();

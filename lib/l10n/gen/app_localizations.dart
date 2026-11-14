@@ -2045,6 +2045,24 @@ abstract class AppLocalizations {
   /// **'发现新版本时显示红点和提示'**
   String get updateRemindHint;
 
+  /// No description provided for @exportLog.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出日志'**
+  String get exportLog;
+
+  /// No description provided for @exportLogHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'只包含 Dart 错误。播放器原生崩溃不在这个文件里，安卓用 adb logcat，iOS 用 Xcode 控制台'**
+  String get exportLogHint;
+
+  /// No description provided for @exportLogEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有日志'**
+  String get exportLogEmpty;
+
   /// No description provided for @friendLinks.
   ///
   /// In zh, this message translates to:

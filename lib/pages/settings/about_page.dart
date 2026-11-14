@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 import '../../core/app_update.dart';
+import '../../core/crash_log.dart';
 import '../../core/errors.dart';
 import '../../core/nav.dart';
 import '../../core/prefs.dart';
@@ -40,6 +42,19 @@ class _AboutPageState extends State<AboutPage> {
               leading: const Icon(Icons.info_outline),
               title: Text(l.appName),
               subtitle: Text(_version),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bug_report_outlined),
+              title: Text(l.exportLog),
+              subtitle: Text(l.exportLogHint),
+              onTap: () async {
+                final file = CrashLog.file;
+                if (file == null) {
+                  toast(context, l.exportLogEmpty);
+                  return;
+                }
+                await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], title: l.exportLog));
+              },
             ),
             ListTile(
               leading: AppUpdate.showDot ? const Badge(child: Icon(Icons.system_update_alt)) : const Icon(Icons.system_update_alt),
