@@ -11,7 +11,6 @@ import 'core/crash_log.dart';
 import 'core/downloads.dart';
 import 'core/native.dart';
 import 'core/prefs.dart';
-import 'player/playback_cache.dart';
 import 'src/rust/api/app.dart' as rapi;
 import 'src/rust/frb_generated.dart';
 import 'webview/web_auth.dart';
@@ -31,7 +30,6 @@ Future<void> main(List<String> args) async {
   await CrashLog.open();
   await rapi.init(root: root.path);
   await Native.excludeFromBackup(root.path);
-  await PlaybackCache.clearAll();
 
   Prefs.load();
   await WebAuth.init();

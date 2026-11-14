@@ -70,15 +70,6 @@ class MinePage extends StatelessWidget {
               );
           return ListView(
             children: [
-              if (links.isNotEmpty) ...[
-                for (final entry in links)
-                  ListTile(
-                    leading: const Icon(Icons.link),
-                    title: Text(entry.key),
-                    onTap: () => AppUpdate.openHttp(entry.value),
-                  ),
-                const Divider(),
-              ],
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Card(
@@ -97,6 +88,16 @@ class MinePage extends StatelessWidget {
                   ),
                 ),
               ),
+              if (links.isNotEmpty) ...[
+                const Divider(),
+                for (final entry in links)
+                  ListTile(
+                    leading: const Icon(Icons.link),
+                    title: Text(entry.key),
+                    onTap: () => AppUpdate.openHttp(entry.value),
+                  ),
+                const Divider(),
+              ],
               tile(Icons.history, l.localHistory, const LocalHistoryPage()),
               tile(Icons.cloud_sync_outlined, l.onlineHistory, const OnlineHistoryPage(), needLogin: true),
               tile(Icons.favorite_border, l.favorites, MyListPage(listType: 'likes', title: l.favorites), needLogin: true),

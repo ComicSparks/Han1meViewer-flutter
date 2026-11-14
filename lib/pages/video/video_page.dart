@@ -170,7 +170,7 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
     if (_player.value.value.playing) WakelockPlus.enable().catchError((_) {});
   }
 
-  /// 上面那一层是另一个页面。本页在 [didPushNext] 里暂停，会话和缓存留着。
+  /// 上面那一层是另一个页面。本页在 [didPushNext] 里暂停，会话留着。
   Future<void> _leaveFor(Future<void> Function() go) => go();
 
   void _switchQuality(String q) {

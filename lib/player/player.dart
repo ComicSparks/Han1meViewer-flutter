@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
-import 'playback_cache.dart';
 import 'playlist_duration.dart';
 
 @immutable
@@ -143,7 +142,7 @@ abstract class HPlayer {
   Future<void> seek(Duration to);
   Future<void> setSpeed(double speed);
 
-  /// 停掉本次播放并丢掉缓存。页面还在，状态变为暂停。
+  /// 停掉本次播放。页面还在，状态变为暂停。
   Future<void> closeSession();
 
   Widget surface();
@@ -160,7 +159,6 @@ class _BetterHPlayer extends HPlayer {
   bool _disposed = false;
   bool _finished = false;
   bool _sessionClosed = false;
-  bool _retained = false;
   bool _lastIsFile = false;
   String? _lastSource;
   Map<String, String>? _lastHeaders;
@@ -178,10 +176,6 @@ class _BetterHPlayer extends HPlayer {
     _lastIsFile = isFile;
     _finished = false;
     _sessionClosed = false;
-    if (!isFile && !_retained && !_disposed) {
-      _retained = true;
-      PlaybackCache.retainNetwork();
-    }
     await _release();
     if (!_sameOpen(gen) || _disposed) return;
     value.value = PlayerValue(buffering: true, position: start ?? Duration.zero);
@@ -207,7 +201,6 @@ class _BetterHPlayer extends HPlayer {
             source,
             headers: headers,
             videoFormat: source.contains('.m3u8') ? BetterPlayerVideoFormat.hls : null,
-            cacheConfiguration: isFile ? null : playbackCacheConfiguration,
           );
     try {
       await c.setupDataSource(ds);
@@ -344,10 +337,6 @@ class _BetterHPlayer extends HPlayer {
     cancelPendingOpen();
     _disposed = true;
     await _release();
-    if (_retained) {
-      _retained = false;
-      await PlaybackCache.releaseNetwork();
-    }
   }
 }
 
@@ -379,7 +368,7 @@ class _MediaKitHPlayer extends HPlayer {
   }
 
   final Player _p = Player(
-    configuration: const PlayerConfiguration(title: 'HaVF', bufferSize: PlaybackCache.maxBytes),
+    configuration: const PlayerConfiguration(title: 'HaVF'),
   );
   late final VideoController _vc = VideoController(_p);
   final List<StreamSubscription<dynamic>> _subs = [];
@@ -389,7 +378,6 @@ class _MediaKitHPlayer extends HPlayer {
   bool _lastIsFile = false;
   String? _lastSource;
   Map<String, String>? _lastHeaders;
-  Directory? _cacheDir;
 
   @override
   bool get hasSource => _lastSource != null;
@@ -401,26 +389,6 @@ class _MediaKitHPlayer extends HPlayer {
   void _aspect() {
     final w = _p.state.width, h = _p.state.height;
     if (w != null && h != null && w > 0 && h > 0) _set(value.value.copyWith(aspectRatio: w / h));
-  }
-
-  Future<void> _dropCache() async {
-    final dir = _cacheDir;
-    _cacheDir = null;
-    await PlaybackCache.delete(dir);
-  }
-
-  Future<void> _armCache() async {
-    await _dropCache();
-    if (_lastIsFile) return;
-    _cacheDir = await PlaybackCache.createSession();
-    final platform = _p.platform;
-    if (platform is! NativePlayer) return;
-    final bytes = PlaybackCache.maxBytes.toString();
-    await platform.setProperty('demuxer-cache-dir', _cacheDir!.path);
-    await platform.setProperty('cache', 'yes');
-    await platform.setProperty('cache-on-disk', 'yes');
-    await platform.setProperty('demuxer-max-bytes', bytes);
-    await platform.setProperty('demuxer-max-back-bytes', bytes);
   }
 
   @override
@@ -436,8 +404,6 @@ class _MediaKitHPlayer extends HPlayer {
     _lastIsFile = isFile;
     _finished = false;
     await _p.stop();
-    if (!_sameOpen(gen) || _disposed) return;
-    await _armCache();
     if (!_sameOpen(gen) || _disposed) return;
     _sessionClosed = false;
     value.value = PlayerValue(buffering: true, position: start ?? Duration.zero);
@@ -477,7 +443,6 @@ class _MediaKitHPlayer extends HPlayer {
     final snap = value.value;
     _sessionClosed = true;
     await _p.stop();
-    await _dropCache();
     if (_disposed) return;
     value.value = PlayerValue(
       position: snap.position,
@@ -517,6 +482,5 @@ class _MediaKitHPlayer extends HPlayer {
       await s.cancel();
     }
     await _p.dispose();
-    await _dropCache();
   }
 }
