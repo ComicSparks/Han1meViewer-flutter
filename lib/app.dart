@@ -203,7 +203,10 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
       case AppLifecycleState.paused:
         _backgroundAt ??= DateTime.now();
         if (_browserPassed && (Prefs.blurInBackground.value || _lockActive)) setState(() => _obscured = true);
-        if (_browserPassed) Downloads.onBackground();
+        if (_browserPassed) {
+          Downloads.onBackground();
+          Metrics.flush();
+        }
       case AppLifecycleState.detached:
         break;
     }
