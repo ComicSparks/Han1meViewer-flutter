@@ -727,6 +727,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get webviewData => '内置浏览器数据';
 
   @override
+  String get clearBrowser => '清除浏览器内容';
+
+  @override
+  String get clearBrowserHint => '清除内置浏览器的 Cookie、缓存和网站数据。下次网页登录需要重新登录';
+
+  @override
   String get clearCache => '清理缓存';
 
   @override
@@ -1745,6 +1751,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get webviewData => '內建瀏覽器資料';
+
+  @override
+  String get clearBrowser => '清除瀏覽器內容';
+
+  @override
+  String get clearBrowserHint => '清除內建瀏覽器的 Cookie、快取和網站資料。下次網頁登入需要重新登入';
 
   @override
   String get clearCache => '清理快取';

@@ -232,6 +232,8 @@
   "imageCacheLimit": "Image cache limit",
   "pageCache": "Page cache",
   "webviewData": "Built-in browser data",
+  "clearBrowser": "Clear browser data",
+  "clearBrowserHint": "Clears the built-in browser's cookies, cache and site data. The next web login starts signed out",
   "clearCache": "Clear cache",
   "clearCacheHint": "Clears image, page and browser caches. Downloads and login are kept",
   "about": "About",

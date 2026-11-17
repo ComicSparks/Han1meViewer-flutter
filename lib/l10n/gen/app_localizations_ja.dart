@@ -727,6 +727,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get webviewData => '内蔵ブラウザのデータ';
 
   @override
+  String get clearBrowser => 'ブラウザの内容を削除';
+
+  @override
+  String get clearBrowserHint =>
+      '内蔵ブラウザの Cookie、キャッシュ、サイトデータを削除します。次の Web ログインは未ログインから始まります';
+
+  @override
   String get clearCache => 'キャッシュを削除';
 
   @override

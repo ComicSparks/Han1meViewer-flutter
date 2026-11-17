@@ -3,6 +3,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 import '../src/rust/api/app.dart' as rapi;
 import '../src/rust/api/models.dart';
 import '../src/rust/api/user.dart' as user;
+import '../webview/web_auth.dart';
 import 'pro.dart';
 
 class Session {
@@ -19,6 +20,7 @@ class Session {
 
   static Future<void> logout() async {
     await user.logout();
+    await WebAuth.clearData();
     refresh();
   }
 }

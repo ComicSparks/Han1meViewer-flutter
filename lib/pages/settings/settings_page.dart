@@ -358,6 +358,17 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: Text(c == null ? '…' : formatBytes(c.webviewBytes)),
             ),
             ListTile(
+              leading: const Icon(Icons.public_off_outlined),
+              title: Text(l.clearBrowser),
+              subtitle: Text(l.clearBrowserHint),
+              onTap: () async {
+                if (!await confirm(context, l.clearBrowser, content: l.clearBrowserHint)) return;
+                await WebAuth.clearData();
+                await _loadCache();
+                if (context.mounted) toast(context, l.cleared);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.cleaning_services_outlined),
               title: Text(l.clearCache),
               subtitle: Text(l.clearCacheHint),

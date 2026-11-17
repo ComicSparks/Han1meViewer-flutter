@@ -318,6 +318,8 @@
   "imageCacheLimit": "图片缓存上限",
   "pageCache": "页面缓存",
   "webviewData": "内置浏览器数据",
+  "clearBrowser": "清除浏览器内容",
+  "clearBrowserHint": "清除内置浏览器的 Cookie、缓存和网站数据。下次网页登录需要重新登录",
   "clearCache": "清理缓存",
   "clearCacheHint": "清理图片、页面与浏览器缓存，不影响下载和登录",
   "about": "关于",

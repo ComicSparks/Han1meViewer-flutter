@@ -232,6 +232,8 @@
   "imageCacheLimit": "画像キャッシュ上限",
   "pageCache": "ページキャッシュ",
   "webviewData": "内蔵ブラウザのデータ",
+  "clearBrowser": "ブラウザの内容を削除",
+  "clearBrowserHint": "内蔵ブラウザの Cookie、キャッシュ、サイトデータを削除します。次の Web ログインは未ログインから始まります",
   "clearCache": "キャッシュを削除",
   "clearCacheHint": "画像・ページ・ブラウザのキャッシュを削除します（ダウンロードとログインは保持）",
   "about": "このアプリについて",

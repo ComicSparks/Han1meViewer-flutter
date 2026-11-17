@@ -41,6 +41,9 @@ class SearchOptions {
   static SearchOptions? _cache;
   static String? _cacheGenreFile;
 
+  /// 页面上的标签可能是任意语言的文案。站点筛选用的是 search_key（多为繁体）。
+  static final Map<String, String> _searchKeys = {};
+
   static Future<List<SearchOption>> _list(String path) async {
     final raw = jsonDecode(await rootBundle.loadString(path)) as List;
     return raw.map((e) => SearchOption.fromJson(e as Map<String, dynamic>)).toList();
@@ -66,7 +69,34 @@ class SearchOptions {
       await _list('assets/search_options/brands.json'),
     );
     _cacheGenreFile = gf;
+    _rebuildSearchKeys(_cache!);
     return _cache!;
+  }
+
+  /// 与原版 TagLocalizer.resolveSearchKey 相同：任意语言文案 → search_key，找不到则原样返回。
+  static Future<String> resolveSearchKey(String tag) async {
+    await load();
+    return _searchKeys[tag] ?? tag;
+  }
+
+  static void _rebuildSearchKeys(SearchOptions options) {
+    _searchKeys.clear();
+    void add(SearchOption option) {
+      final key = option.key;
+      if (key == null || key.isEmpty) return;
+      for (final raw in [key, option.name, ...option.lang.values]) {
+        if (raw != null && raw.isNotEmpty) _searchKeys.putIfAbsent(raw, () => key);
+      }
+    }
+
+    for (final list in options.tags.values) {
+      for (final option in list) {
+        add(option);
+      }
+    }
+    for (final option in options.genre) {
+      add(option);
+    }
   }
 
   static Future<List<SearchOption>> reportReasons() => _list('assets/report_reason.json');

@@ -12,6 +12,7 @@ import '../../core/errors.dart';
 import '../../core/keyframes.dart';
 import '../../core/nav.dart';
 import '../../core/prefs.dart';
+import '../../core/search_options.dart';
 import '../../core/session.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../player/player.dart';
@@ -515,8 +516,11 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
     }
   }
 
-  void _searchTag(String tag) {
-    push(context, SearchPage(initialTags: [tag]));
+  Future<void> _searchTag(String tag) async {
+    // 原版把标签解析成 search_key 后走关键词 query，而不是 tags[] 筛选。
+    final key = await SearchOptions.resolveSearchKey(tag);
+    if (!mounted) return;
+    push(context, SearchPage(initialQuery: key));
   }
 
   // ---------- 布局 ----------

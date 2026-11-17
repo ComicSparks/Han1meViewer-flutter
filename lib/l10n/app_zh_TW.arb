@@ -232,6 +232,8 @@
   "imageCacheLimit": "圖片快取上限",
   "pageCache": "頁面快取",
   "webviewData": "內建瀏覽器資料",
+  "clearBrowser": "清除瀏覽器內容",
+  "clearBrowserHint": "清除內建瀏覽器的 Cookie、快取和網站資料。下次網頁登入需要重新登入",
   "clearCache": "清理快取",
   "clearCacheHint": "清理圖片、頁面與瀏覽器快取，不影響下載和登入",
   "about": "關於",

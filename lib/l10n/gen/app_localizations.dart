@@ -1493,6 +1493,18 @@ abstract class AppLocalizations {
   /// **'内置浏览器数据'**
   String get webviewData;
 
+  /// No description provided for @clearBrowser.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除浏览器内容'**
+  String get clearBrowser;
+
+  /// No description provided for @clearBrowserHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除内置浏览器的 Cookie、缓存和网站数据。下次网页登录需要重新登录'**
+  String get clearBrowserHint;
+
   /// No description provided for @clearCache.
   ///
   /// In zh, this message translates to:

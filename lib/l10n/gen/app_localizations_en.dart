@@ -739,6 +739,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get webviewData => 'Built-in browser data';
 
   @override
+  String get clearBrowser => 'Clear browser data';
+
+  @override
+  String get clearBrowserHint =>
+      'Clears the built-in browser\'s cookies, cache and site data. The next web login starts signed out';
+
+  @override
   String get clearCache => 'Clear cache';
 
   @override

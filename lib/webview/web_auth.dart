@@ -108,14 +108,24 @@ class WebAuth {
     return rapi.applyWebviewCookies(cookies: r.cookies, userAgent: r.userAgent);
   }
 
+  /// 清掉内置浏览器的 Cookie、缓存和网站数据。退出登录后再次打开网页登录时不会沿用上次的会话。
   static Future<void> clearData() async {
     try {
       if (useDesktopWindow) {
         await WebviewWindow.clearAll();
-      } else {
-        await cookieManager.deleteAllCookies();
-        if (!Platform.isWindows) await InAppWebViewController.clearAllCache();
+        return;
       }
+      await cookieManager.deleteAllCookies();
+      final storage = WebStorageManager.instance();
+      if (Platform.isAndroid) {
+        await storage.deleteAllData();
+      } else if (Platform.isIOS || Platform.isMacOS) {
+        await storage.removeDataModifiedSince(
+          dataTypes: WebsiteDataType.ALL,
+          date: DateTime.fromMillisecondsSinceEpoch(0),
+        );
+      }
+      if (!Platform.isWindows) await InAppWebViewController.clearAllCache();
     } catch (_) {}
   }
 
