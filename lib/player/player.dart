@@ -157,6 +157,7 @@ class _BetterHPlayer extends HPlayer {
 
   BetterPlayerController? _c;
   final _version = ValueNotifier(0);
+  double? _appliedAspect;
   bool _disposed = false;
   bool _finished = false;
   bool _sessionClosed = false;
@@ -278,6 +279,18 @@ class _BetterHPlayer extends HPlayer {
       completed: _finished ? true : (v.isPlaying ? false : null),
       error: v.errorDescription,
     );
+    final ratio = v.size == null ? null : v.aspectRatio;
+    if (ratio != null && ratio > 0 && ratio.isFinite) _applyVideoAspect(ratio);
+  }
+
+  /// BetterPlayer 未指定宽高比时固定用 16:9。竖屏全屏就会只有未全屏那么高。
+  void _applyVideoAspect(double ratio) {
+    final c = _c;
+    final prev = _appliedAspect;
+    if (c == null || (prev != null && (prev - ratio).abs() < 0.01)) return;
+    _appliedAspect = ratio;
+    c.setOverriddenAspectRatio(ratio);
+    c.setOverriddenFit(BoxFit.contain);
   }
 
   Future<void> _waitForDuration(int gen) async {
@@ -355,6 +368,7 @@ class _BetterHPlayer extends HPlayer {
   Future<void> _release() async {
     final c = _c;
     _c = null;
+    _appliedAspect = null;
     if (c == null) return;
     _durationPoll?.cancel();
     c.videoPlayerController?.removeListener(_sync);
