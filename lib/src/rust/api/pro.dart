@@ -25,6 +25,9 @@ Future<void> reloadPro() => RustLib.instance.api.crateApiProReloadPro();
 Future<void> inputCdKey({required String cdKey}) =>
     RustLib.instance.api.crateApiProInputCdKey(cdKey: cdKey);
 
+Future<String> referralCall({required String payload}) =>
+    RustLib.instance.api.crateApiProReferralCall(payload: payload);
+
 Future<void> setPatAccessKey({required String accessKey}) =>
     RustLib.instance.api.crateApiProSetPatAccessKey(accessKey: accessKey);
 

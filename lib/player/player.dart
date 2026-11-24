@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import 'hls_proxy.dart';
 import 'playlist_duration.dart';
 
 @immutable
@@ -127,7 +128,7 @@ abstract class HPlayer {
   }
 
   void _loadPlaylistDuration(String source, Map<String, String>? headers, bool isFile, void Function() onReady) {
-    if (isFile || !source.toLowerCase().contains('.m3u8')) return;
+    if (isFile || !shouldProbePlaylist(source)) return;
     final ticket = _playlistTicket;
     playlistDuration(source, headers).then((d) {
       if (ticket != _playlistTicket || d == null || d <= Duration.zero) return;
@@ -170,7 +171,6 @@ class _BetterHPlayer extends HPlayer {
   Future<void> open(String source, {Map<String, String>? headers, bool isFile = false, Duration? start, bool forcePlay = false}) async {
     final gen = _claimOpen();
     _resetClock();
-    _loadPlaylistDuration(source, headers, isFile, _sync);
     _lastSource = source;
     _lastHeaders = headers;
     _lastIsFile = isFile;
@@ -179,10 +179,27 @@ class _BetterHPlayer extends HPlayer {
     await _release();
     if (!_sameOpen(gen) || _disposed) return;
     value.value = PlayerValue(buffering: true, position: start ?? Duration.zero);
+
+    var playUrl = source;
+    var playHeaders = headers;
+    var hls = !isFile && source.toLowerCase().contains('.m3u8');
+    if (!isFile && Platform.isIOS) {
+      final prepared = await prepareIosPlayback(source, headers);
+      if (!_sameOpen(gen) || _disposed) return;
+      playUrl = prepared.url;
+      hls = prepared.hls;
+      playHeaders = prepared.headers;
+      if (prepared.duration != null && prepared.duration! > Duration.zero) {
+        _playlistDuration = prepared.duration;
+      }
+    }
+    if (_playlistDuration == null) _loadPlaylistDuration(source, headers, isFile, _sync);
+
     final c = BetterPlayerController(
       BetterPlayerConfiguration(
         autoPlay: false,
-        startAt: start,
+        // iOS 在时长还是 0 时 seek 会被钳回开头，等时长出来再跳。
+        startAt: Platform.isIOS ? null : start,
         fit: BoxFit.contain,
         expandToFill: true,
         autoDispose: false,
@@ -198,9 +215,12 @@ class _BetterHPlayer extends HPlayer {
     final ds = isFile
         ? BetterPlayerDataSource.file(source)
         : BetterPlayerDataSource.network(
-            source,
-            headers: headers,
-            videoFormat: source.contains('.m3u8') ? BetterPlayerVideoFormat.hls : null,
+            playUrl,
+            headers: playHeaders,
+            videoFormat: hls ? BetterPlayerVideoFormat.hls : null,
+            overriddenDuration: Platform.isIOS && _playlistDuration != null && _playlistDuration! > Duration.zero
+                ? _playlistDuration
+                : null,
           );
     try {
       await c.setupDataSource(ds);
@@ -213,6 +233,12 @@ class _BetterHPlayer extends HPlayer {
     c.videoPlayerController?.addListener(_sync);
     _sync();
     _listenForDuration(() => !_disposed && _c == c, _sync);
+    if (Platform.isIOS && start != null && start > Duration.zero) {
+      await _waitForDuration(gen);
+      if (_sameOpen(gen) && !_disposed && !_sessionClosed && value.value.duration > Duration.zero) {
+        await c.seekTo(start);
+      }
+    }
     if (!_sameOpen(gen) || _sessionClosed) return;
     final wantPlay = forcePlay || (shouldPlay?.call() ?? false);
     if (!wantPlay) return;
@@ -252,6 +278,14 @@ class _BetterHPlayer extends HPlayer {
       completed: _finished ? true : (v.isPlaying ? false : null),
       error: v.errorDescription,
     );
+  }
+
+  Future<void> _waitForDuration(int gen) async {
+    for (var i = 0; i < 40; i++) {
+      if (!_sameOpen(gen) || _disposed || _sessionClosed) return;
+      if (value.value.duration > Duration.zero) return;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
   }
 
   @override

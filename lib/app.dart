@@ -20,6 +20,7 @@ import 'pages/lock/lock_screen.dart';
 import 'pages/lock/unlock_browser_page.dart';
 import 'pages/shell.dart';
 import 'src/rust/api/hanime.dart' as hanime;
+import 'src/rust/api/pro.dart' as pro_api;
 
 const seedColor = Color(0xFF904A43);
 
@@ -129,6 +130,7 @@ class _AppGuardState extends State<AppGuard> with WidgetsBindingObserver {
   Future<void> _checkUpdate() async {
     Pro.refresh();
     await AppUpdate.refresh();
+    pro_api.referralCall(payload: '{"action":"status"}').catchError((_) => '');
     if (!mounted || _locked) return;
     final ctx = navigatorKey.currentContext;
     if (ctx != null && ctx.mounted) await AppUpdate.present(ctx);

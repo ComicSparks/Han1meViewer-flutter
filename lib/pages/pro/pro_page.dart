@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -262,6 +264,8 @@ class _ProPageState extends State<ProPage> {
               enabled: !_busy,
               onTap: _enterKey,
             ),
+          const Divider(height: 1),
+          const _ReferralTiles(),
         ],
       ),
     );
@@ -315,4 +319,170 @@ String _time(Object secs) {
   ).toLocal();
   String two(int v) => v.toString().padLeft(2, '0');
   return '${d.year}-${two(d.month)}-${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
+}
+
+class _ReferralTiles extends StatefulWidget {
+  const _ReferralTiles();
+
+  @override
+  State<_ReferralTiles> createState() => _ReferralTilesState();
+}
+
+class _ReferralTilesState extends State<_ReferralTiles> {
+  bool _busy = false;
+  String _referrer = '';
+  int _unbindWaitDays = 0;
+  int _campaignStart = 0;
+  int _campaignEnd = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final raw = await api.referralCall(payload: '{"action":"local"}');
+      if (!mounted || raw.isEmpty) return;
+      _apply(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {}
+  }
+
+  Future<void> _referral(String payload, String ok) async {
+    setState(() => _busy = true);
+    try {
+      final raw = await api.referralCall(payload: payload);
+      if (!mounted) return;
+      if (raw.isNotEmpty) {
+        _apply(jsonDecode(raw) as Map<String, dynamic>);
+      }
+      toast(context, ok);
+    } catch (e) {
+      if (mounted) toast(context, _referralError(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _apply(Map<String, dynamic> map) {
+    setState(() {
+      _referrer = (map['referrer'] ?? '').toString();
+      _unbindWaitDays = _asInt(map['unbind_wait_days']);
+      _campaignStart = _asInt(map['campaign_start']);
+      _campaignEnd = _asInt(map['campaign_end']);
+    });
+  }
+
+  String _copy(Map<String, String> text) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh' &&
+        (locale.scriptCode == 'Hant' || locale.countryCode == 'TW' || locale.countryCode == 'HK')) {
+      return text['zh_TW'] ?? text['zh']!;
+    }
+    return text[locale.languageCode] ?? text['en'] ?? text['zh']!;
+  }
+
+  String _referralError(Object error) {
+    final text = error.toString();
+    final wait = RegExp(r'REFERRER_UNBIND_WAIT:(\d+)').firstMatch(text);
+    if (wait != null) {
+      return _copy(const {
+        'zh': '还有 {days} 天',
+        'zh_TW': '還有 {days} 天',
+        'en': '{days} days left',
+        'ja': 'あと {days} 日',
+      }).replaceAll('{days}', wait.group(1)!);
+    }
+    if (text.contains('REFERRER_SELF')) {
+      return _copy(const {'zh': '不能填写自己', 'zh_TW': '不能填寫自己', 'en': 'Cannot use yourself', 'ja': '自分は指定できません'});
+    }
+    if (text.contains('REFERRER_LOCKED')) {
+      return _copy(const {'zh': '已经绑定了推荐人', 'zh_TW': '已經綁定了推薦人', 'en': 'Already bound', 'ja': 'すでに登録済みです'});
+    }
+    if (text.contains('REFERRER_MUTUAL')) {
+      return _copy(const {'zh': '不能互相绑定', 'zh_TW': '不能互相綁定', 'en': 'Cannot bind each other', 'ja': '相互登録はできません'});
+    }
+    if (text.contains('REFERRER_NOT_BOUND')) {
+      return _copy(const {'zh': '还没有推荐人', 'zh_TW': '還沒有推薦人', 'en': 'No referrer yet', 'ja': '紹介者はいません'});
+    }
+    return text;
+  }
+
+  Future<bool> _ensureLogin() async {
+    if (Session.loggedIn) return true;
+    final ok = await push<bool>(context, const LoginPage());
+    if (ok == true) {
+      Session.refresh();
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final campaign = _campaignStart > 0 && _campaignEnd > 0
+        ? '${_time(_campaignStart)} — ${_time(_campaignEnd)}'
+        : '';
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          title: Text(_copy(const {'zh': '推荐人', 'zh_TW': '推薦人', 'en': 'Referrer', 'ja': '紹介者'})),
+          subtitle: Text(_referrer),
+          enabled: !_busy,
+          onTap: () async {
+            if (!await _ensureLogin() || !context.mounted) return;
+            if (_referrer.isNotEmpty) return;
+            final name = await inputText(
+              context,
+              _copy(const {
+                'zh': '填写推荐人用户名',
+                'zh_TW': '填寫推薦人用戶名',
+                'en': 'Enter referrer username',
+                'ja': '紹介者のユーザー名',
+              }),
+            );
+            if (name == null || name.trim().isEmpty) return;
+            await _referral(
+              jsonEncode({'action': 'bind', 'referrer': name.trim()}),
+              _copy(const {'zh': '已绑定', 'zh_TW': '已綁定', 'en': 'Bound', 'ja': '登録しました'}),
+            );
+          },
+          onLongPress: () async {
+            if (_referrer.isEmpty) return;
+            if (_unbindWaitDays > 0) {
+              toast(context, _referralError('REFERRER_UNBIND_WAIT:$_unbindWaitDays'));
+              return;
+            }
+            final ok = await confirm(
+              context,
+              _copy(const {'zh': '解绑推荐人', 'zh_TW': '解綁推薦人', 'en': 'Unbind referrer', 'ja': '紹介者を解除'}),
+              content: _copy(const {
+                'zh': '确定解绑推荐人？',
+                'zh_TW': '確定解綁推薦人？',
+                'en': 'Unbind this referrer?',
+                'ja': '紹介者を解除しますか？',
+              }),
+            );
+            if (!ok || !context.mounted) return;
+            await _referral(
+              '{"action":"unbind"}',
+              _copy(const {'zh': '已解绑', 'zh_TW': '已解綁', 'en': 'Unbound', 'ja': '解除しました'}),
+            );
+          },
+        ),
+        ListTile(
+          title: Text(_copy(const {'zh': '活动时间', 'zh_TW': '活動時間', 'en': 'Campaign time', 'ja': '活動期間'})),
+          subtitle: Text(campaign),
+        ),
+      ],
+    );
+  }
+}
+
+int _asInt(Object? value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
 }

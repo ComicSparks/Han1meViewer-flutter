@@ -37,6 +37,10 @@ target 'Runner' do
 end
 
 post_install do |installer|
+  patch = File.expand_path('../scripts/patch_better_player.py', File.dirname(__FILE__))
+  unless system('python3', patch)
+    raise 'better_player iOS patch failed'
+  end
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
   end

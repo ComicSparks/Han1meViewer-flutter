@@ -67,6 +67,8 @@ class Prefs {
   static late final Pref<String> disguiseIcon;
   static late final Pref<bool> browserPassed;
   static late final Pref<bool> updateRemind;
+  static late final Pref<bool> hideAnnouncement;
+  static late final Pref<String> announcementRead;
 
   static void load() {
     theme = Pref('theme', 'system');
@@ -97,6 +99,8 @@ class Prefs {
     disguiseIcon = Pref('disguise_icon', 'default');
     browserPassed = Pref('browser_passed', false);
     updateRemind = Pref('update_remind', true);
+    hideAnnouncement = Pref('hide_announcement', false);
+    announcementRead = Pref('announcement_read', '');
   }
 
   static ThemeMode get themeMode => switch (theme.value) {

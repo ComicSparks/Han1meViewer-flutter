@@ -65,6 +65,13 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
 
   String _commentTitle(AppLocalizations l) => _commentTotal == null ? l.comments : '${l.comments} $_commentTotal';
 
+  Widget _comments() => CommentsView(
+        videoCode: widget.videoCode,
+        csrfToken: _video?.csrfToken,
+        currentUserId: _video?.currentUserId,
+        onTotal: _onCommentTotal,
+      );
+
   void _onCommentTotal(int? total) {
     if (!mounted || total == _commentTotal) return;
     setState(() => _commentTotal = total);
@@ -584,7 +591,7 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
                   child: Column(
                     children: [
                       ListTile(title: Text(_commentTitle(l))),
-                      Expanded(child: CommentsView(videoCode: widget.videoCode, onTotal: _onCommentTotal)),
+                      Expanded(child: _comments()),
                     ],
                   ),
                 ),
@@ -605,7 +612,7 @@ class _VideoPageState extends State<VideoPage> with RouteAware {
               child: TabBarView(
                 children: [
                   intro,
-                  if (showComments) CommentsView(videoCode: widget.videoCode, onTotal: _onCommentTotal),
+                  if (showComments) _comments(),
                 ],
               ),
             ),

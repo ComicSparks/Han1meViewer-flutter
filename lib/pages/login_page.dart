@@ -5,6 +5,7 @@ import '../core/metrics.dart';
 import '../core/session.dart';
 import '../l10n/gen/app_localizations.dart';
 import '../src/rust/api/app.dart' as rapi;
+import '../src/rust/api/pro.dart' as pro_api;
 import '../src/rust/api/user.dart' as user;
 import '../webview/web_auth.dart';
 
@@ -36,6 +37,9 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final ok = await action();
       Session.refresh();
+      if (ok && Session.loggedIn) {
+        pro_api.referralCall(payload: '{"action":"status"}').catchError((_) => '');
+      }
       if (!mounted) return;
       if (ok && Session.loggedIn) {
         Metrics.note('login');

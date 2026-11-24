@@ -11,6 +11,8 @@ fi
 
 export CODE_SIGNING_REQUIRED=NO
 export CODE_SIGNING_ALLOWED=NO
+flutter pub get
+python3 scripts/patch_better_player.py
 flutter build ios --release --no-codesign
 
 rm -rf build/Payload build/nosign.ipa

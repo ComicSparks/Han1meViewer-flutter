@@ -12,8 +12,12 @@ import '../../widgets/net_image.dart';
 
 class CommentsView extends StatefulWidget {
   final String videoCode;
+
+  /// 影片页的 CSRF。原版发评论用的是这一份，不用评论片段里的 token。
+  final String? csrfToken;
+  final String? currentUserId;
   final ValueChanged<int?>? onTotal;
-  const CommentsView({super.key, required this.videoCode, this.onTotal});
+  const CommentsView({super.key, required this.videoCode, this.csrfToken, this.currentUserId, this.onTotal});
 
   @override
   State<CommentsView> createState() => _CommentsViewState();
@@ -59,6 +63,21 @@ class _CommentsViewState extends State<CommentsView> with AutomaticKeepAliveClie
     }
   }
 
+  String? _token(VideoComments d) {
+    final page = widget.csrfToken;
+    if (page != null && page.isNotEmpty) return page;
+    final fromComments = d.csrfToken;
+    if (fromComments != null && fromComments.isNotEmpty) return fromComments;
+    return null;
+  }
+
+  String _userId(VideoComments d) {
+    for (final id in [d.currentUserId, widget.currentUserId, Session.state.value.userId]) {
+      if (id != null && id.trim().isNotEmpty) return id.trim();
+    }
+    return '';
+  }
+
   Future<void> _send() async {
     final text = _input.text.trim();
     final d = _data;
@@ -66,8 +85,8 @@ class _CommentsViewState extends State<CommentsView> with AutomaticKeepAliveClie
     setState(() => _sending = true);
     try {
       await hanime.postComment(
-        csrfToken: d.csrfToken,
-        currentUserId: d.currentUserId ?? Session.state.value.userId ?? '',
+        csrfToken: _token(d),
+        currentUserId: _userId(d),
         kind: 'video',
         targetId: widget.videoCode,
         text: text,
@@ -104,8 +123,8 @@ class _CommentsViewState extends State<CommentsView> with AutomaticKeepAliveClie
           separatorBuilder: (_, _) => const Divider(height: 1, indent: 64),
           itemBuilder: (context, i) => CommentTile(
             comment: d.comments[i],
-            csrfToken: d.csrfToken,
-            currentUserId: d.currentUserId,
+            csrfToken: _token(d),
+            currentUserId: _userId(d),
             place: 'comment',
           ),
         ),
@@ -376,8 +395,8 @@ class _RepliesState extends State<_Replies> {
             padding: const EdgeInsets.only(left: 32),
             child: CommentTile(
               comment: r,
-              csrfToken: d.csrfToken ?? widget.parent.csrfToken,
-              currentUserId: d.currentUserId ?? widget.parent.currentUserId,
+              csrfToken: widget.parent.csrfToken ?? d.csrfToken,
+              currentUserId: widget.parent.currentUserId ?? d.currentUserId,
               place: 'reply',
             ),
           ),

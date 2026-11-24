@@ -272,6 +272,8 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiProInputCdKey({required String cdKey});
 
+  Future<String> crateApiProReferralCall({required String payload});
+
   bool crateApiProIsPro();
 
   Future<Keyframe> crateApiModelsKeyframeDefault();
@@ -2418,6 +2420,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiAppInitAppConstMeta =>
       const TaskConstMeta(debugName: "init_app", argNames: []);
+
+  @override
+  Future<String> crateApiProReferralCall({required String payload}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(payload, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 138,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiProReferralCallConstMeta,
+        argValues: [payload],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiProReferralCallConstMeta =>
+      const TaskConstMeta(debugName: "referral_call", argNames: ["payload"]);
 
   @override
   Future<void> crateApiProInputCdKey({required String cdKey}) {
@@ -4612,12 +4642,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AppConfig dco_decode_app_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return AppConfig(
       latestVersion: dco_decode_String(arr[0]),
       downloadUrl: dco_decode_String(arr[1]),
       changeLog: dco_decode_String(arr[2]),
+      announcement: dco_decode_String(arr[3]),
     );
   }
 
@@ -5505,10 +5536,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_latestVersion = sse_decode_String(deserializer);
     var var_downloadUrl = sse_decode_String(deserializer);
     var var_changeLog = sse_decode_String(deserializer);
+    var var_announcement = sse_decode_String(deserializer);
     return AppConfig(
       latestVersion: var_latestVersion,
       downloadUrl: var_downloadUrl,
       changeLog: var_changeLog,
+      announcement: var_announcement,
     );
   }
 
@@ -6661,6 +6694,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.latestVersion, serializer);
     sse_encode_String(self.downloadUrl, serializer);
     sse_encode_String(self.changeLog, serializer);
+    sse_encode_String(self.announcement, serializer);
   }
 
   @protected

@@ -17,16 +17,21 @@ class AppConfig {
   final String latestVersion;
   final String downloadUrl;
   final String changeLog;
+  final String announcement;
 
   const AppConfig({
     required this.latestVersion,
     required this.downloadUrl,
     required this.changeLog,
+    required this.announcement,
   });
 
   @override
   int get hashCode =>
-      latestVersion.hashCode ^ downloadUrl.hashCode ^ changeLog.hashCode;
+      latestVersion.hashCode ^
+      downloadUrl.hashCode ^
+      changeLog.hashCode ^
+      announcement.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -35,5 +40,6 @@ class AppConfig {
           runtimeType == other.runtimeType &&
           latestVersion == other.latestVersion &&
           downloadUrl == other.downloadUrl &&
-          changeLog == other.changeLog;
+          changeLog == other.changeLog &&
+          announcement == other.announcement;
 }

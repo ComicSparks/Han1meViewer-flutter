@@ -19,5 +19,8 @@ class Pro {
     if (!powered.value && !Prefs.updateRemind.value) {
       Prefs.updateRemind.value = true;
     }
+    if (!powered.value && Prefs.hideAnnouncement.value) {
+      Prefs.hideAnnouncement.value = false;
+    }
   }
 }

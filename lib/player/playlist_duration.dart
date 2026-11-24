@@ -1,30 +1,42 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import 'media_http.dart';
 
 final _extinf = RegExp(r'#EXTINF:([0-9.]+)');
 final _bandwidth = RegExp(r'BANDWIDTH=(\d+)');
 
+const _progressive = ['.mp4', '.webm', '.mkv', '.mov', '.m4v', '.avi', '.mp3', '.m4a'];
+
+/// 路径像普通媒体文件时不去拉正文。其余地址用内容是不是 `#EXTM3U` 判断。
+bool shouldProbePlaylist(String url) {
+  final path = (Uri.tryParse(url)?.path ?? url).toLowerCase();
+  if (path.contains('.m3u8')) return true;
+  return !_progressive.any(path.endsWith);
+}
+
+bool isHlsPlaylist(String body) {
+  final text = body.trimLeft().replaceFirst('\uFEFF', '');
+  return text.startsWith('#EXTM3U');
+}
+
 /// 播放器还没报出时长时，把 m3u8 里的分段长度加起来。
 Future<Duration?> playlistDuration(String url, Map<String, String>? headers) async {
+  if (!shouldProbePlaylist(url)) return null;
   try {
-    final body = await _get(url, headers);
-    if (body == null) return null;
-    if (body.contains('#EXT-X-STREAM-INF')) {
-      final variant = _bestVariant(body, url);
-      if (variant != null) {
-        final media = await _get(variant, headers);
-        final summed = media == null ? null : _sum(media);
-        if (summed != null) return summed;
-      }
+    final root = await readMediaText(url, headers);
+    if (root == null || !isHlsPlaylist(root.text)) return null;
+    if (root.text.contains('#EXT-X-STREAM-INF')) {
+      final variant = bestVariantUrl(root.text, root.finalUrl);
+      if (variant == null) return null;
+      final media = await readMediaText(variant, headers);
+      if (media == null) return null;
+      return sumPlaylist(media.text);
     }
-    return _sum(body);
+    return sumPlaylist(root.text);
   } catch (_) {
     return null;
   }
 }
 
-Duration? _sum(String body) {
+Duration? sumPlaylist(String body) {
   var seconds = 0.0;
   for (final m in _extinf.allMatches(body)) {
     seconds += double.tryParse(m.group(1)!) ?? 0;
@@ -33,8 +45,8 @@ Duration? _sum(String body) {
   return Duration(milliseconds: (seconds * 1000).round());
 }
 
-String? _bestVariant(String body, String base) {
-  final lines = body.split('\n');
+String? bestVariantUrl(String body, String base) {
+  final lines = body.split(RegExp(r'\r?\n'));
   String? best;
   var bestBw = -1;
   for (var i = 0; i < lines.length; i++) {
@@ -55,30 +67,4 @@ String? _bestVariant(String body, String base) {
     }
   }
   return best;
-}
-
-Future<String?> _get(String url, Map<String, String>? headers) async {
-  final client = HttpClient();
-  try {
-    client.connectionTimeout = const Duration(seconds: 8);
-    final req = await client.getUrl(Uri.parse(url)).timeout(const Duration(seconds: 8));
-    headers?.forEach((name, value) {
-      try {
-        req.headers.set(name, value);
-      } catch (_) {}
-    });
-    final resp = await req.close().timeout(const Duration(seconds: 8));
-    if (resp.statusCode >= 400) {
-      await resp.drain<void>();
-      return null;
-    }
-    final bytes = <int>[];
-    await for (final chunk in resp.timeout(const Duration(seconds: 8))) {
-      bytes.addAll(chunk);
-      if (bytes.length > 512 * 1024) break;
-    }
-    return utf8.decode(bytes, allowMalformed: true);
-  } finally {
-    client.close(force: true);
-  }
 }

@@ -87,6 +87,25 @@ class _AboutPageState extends State<AboutPage> {
                 Prefs.updateRemind.value = !Prefs.updateRemind.value;
               },
             ),
+            ListTile(
+              leading: Icon(Icons.campaign_outlined, color: Pro.isPro ? null : Theme.of(context).disabledColor),
+              title: Text(
+                _hideAnnouncementTitle(context),
+                style: TextStyle(color: Pro.isPro ? null : Theme.of(context).disabledColor),
+              ),
+              trailing: Switch(
+                value: Pro.isPro && Prefs.hideAnnouncement.signal.value,
+                onChanged: Pro.isPro ? (v) => Prefs.hideAnnouncement.value = v : null,
+              ),
+              onTap: () {
+                if (!Pro.isPro) {
+                  toast(context, l.needPro);
+                  push(context, const ProPage());
+                  return;
+                }
+                Prefs.hideAnnouncement.value = !Prefs.hideAnnouncement.value;
+              },
+            ),
             if (AppUpdate.latest.value != null)
               ListTile(
                 leading: const Icon(Icons.new_releases_outlined),
@@ -103,4 +122,18 @@ class _AboutPageState extends State<AboutPage> {
       ),
     );
   }
+}
+
+String _hideAnnouncementTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context);
+  if (locale.languageCode == 'zh' &&
+      (locale.scriptCode == 'Hant' || locale.countryCode == 'TW' || locale.countryCode == 'HK')) {
+    return '不展示公告';
+  }
+  return switch (locale.languageCode) {
+    'en' => 'Hide announcements',
+    'ja' => 'お知らせを表示しない',
+    'zh' => '不展示公告',
+    _ => '不展示公告',
+  };
 }
